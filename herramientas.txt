@@ -1,0 +1,38 @@
+# =====================================================================
+#  CATÁLOGO DE HERRAMIENTAS — Grupo Empresarial La Ofrenda
+#  Fuente única del portal. Una herramienta por línea:
+#
+#      nombre | área | descripción | URL
+#
+#  Reglas:
+#  - El carácter | está RESERVADO como separador. No lo use dentro de
+#    ningún campo; en su lugar use "/", "-" o ",".
+#  - Los cuatro campos son obligatorios.
+#  - Solo se aceptan enlaces que empiecen por https://
+#  - Las líneas vacías y las que empiezan por # se ignoran.
+#  - Las herramientas se muestran en el mismo orden de este archivo.
+#  - El área agrupa sin distinguir mayúsculas ni tildes, pero escríbala
+#    siempre igual para que se vea uniforme (p. ej. "Operaciones").
+#  - Una línea con errores se omite y el motivo queda en la consola
+#    del navegador (F12); las demás cargan normalmente.
+# =====================================================================
+
+# ---------------------------------------------------------------------
+#  EJEMPLOS DE DEMOSTRACIÓN — están comentados y NO se publican.
+#  El dominio .invalid es ficticio por norma; no lo use en líneas reales.
+# ---------------------------------------------------------------------
+# Línea correcta:
+# Nombre de la herramienta | Área | Qué hace, en una frase | https://ejemplo.invalid/herramienta.html
+#
+# Se omitiría (enlace sin HTTPS):
+# Herramienta X | Área | Descripción | http://ejemplo.invalid/x.html
+#
+# Se omitiría (usa | dentro de la descripción, quedan 5 campos):
+# Herramienta Y | Área | Calcula A | B | https://ejemplo.invalid/y.html
+
+# ---------------------------------------------------------------------
+#  HERRAMIENTAS PUBLICADAS
+# ---------------------------------------------------------------------
+
+Conversor de PDF | Documentos | Convierte archivos a PDF y documentos PDF a otros formatos. | https://laofrendasa.github.io/toPdf/toPdf.html
+Calculadora de Horas Extra | Operaciones | Calcula las horas extra del personal de Operaciones. | https://laofrendasa.github.io/claudeHExtraOp/HorasExtra_Operaciones.html

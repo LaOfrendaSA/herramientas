@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+  Seguridad: el portal solo puede solicitar recursos de su propio origen
+  (herramientas.txt y el logo opcional). No carga scripts, estilos ni fuentes externas.
+-->
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Calculadoras y utilidades del Grupo Empresarial La Ofrenda.">
+<title>Herramientas La Ofrenda</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    color-scheme: light;
+
+    /* Paleta oficial La Ofrenda */
+    --lo-magenta: #FF008F;
+    --lo-azul: #1B396B;
+    --lo-azul-formal: #001E77;
+    --lo-blanco: #FFFFFF;
+
+    /* Derivados para modo claro (contraste verificado sobre #FFFFFF) */
+    --lo-texto: #1F2A44;          /* cuerpo · 14.2:1 */
+    --lo-texto-sub: #4A5571;      /* descripciones · 7.6:1 */
+    --lo-texto-meta: #5A6478;     /* metadatos · 5.9:1 */
+    --lo-header-sub: #D4DCF0;     /* subtítulo sobre azul · 9.9:1 */
+    --lo-borde: #D6DEEC;
+    --lo-borde-fuerte: #9AA8C4;
+    --lo-superficie: #F6F8FC;
+    --lo-azul-tinte: #EAF0F9;
+    --lo-rojo: #B42318;
+    --lo-rojo-bg: #FEF3F2;
+
+    --radio: 8px;
+    --fuente: "Nunito Sans", "Nunito", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    --fuente-titulos: "Nunito", "Nunito Sans", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--lo-blanco);
+    color: var(--lo-texto);
+    font-family: var(--fuente);
+    font-size: 15px;
+    line-height: 1.55;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .contenedor {
+    width: 100%;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* Accesibilidad */
+  .salto {
+    position: absolute;
+    left: 16px;
+    top: -100px;
+    z-index: 10;
+    background: var(--lo-azul-formal);
+    color: var(--lo-blanco);
+    padding: 10px 16px;
+    border-radius: 4px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .salto:focus { top: 12px; }
+
+  .solo-lector {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--lo-magenta);
+    outline-offset: 2px;
+  }
+
+  /* Encabezado */
+  .encabezado {
+    background: var(--lo-azul);
+    border-bottom: 3px solid var(--lo-magenta);
+    color: var(--lo-blanco);
+  }
+  .encabezado .contenedor {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+    min-height: 80px;
+  }
+  .logo {
+    display: block;
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+  }
+  .encabezado-texto { text-align: right; }
+  .encabezado-texto p {
+    margin: 0 0 2px;
+    font-size: 13px;
+    color: var(--lo-header-sub);
+  }
+  .encabezado h1 {
+    margin: 0;
+    font-family: var(--fuente-titulos);
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 1.2;
+    color: var(--lo-blanco);
+  }
+  .encabezado.sin-logo .contenedor { justify-content: flex-start; }
+  .encabezado.sin-logo .encabezado-texto { text-align: left; }
+
+  /* Introducción y controles */
+  main { flex: 1; }
+
+  .intro {
+    padding-top: 36px;
+    padding-bottom: 8px;
+  }
+  .intro h2 {
+    margin: 0 0 6px;
+    font-family: var(--fuente-titulos);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--lo-azul-formal);
+  }
+  .intro p {
+    margin: 0;
+    max-width: 62ch;
+    color: var(--lo-texto-sub);
+  }
+
+  .controles {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 16px;
+    margin-top: 24px;
+    padding: 20px;
+    background: var(--lo-superficie);
+    border: 1px solid var(--lo-borde);
+    border-radius: var(--radio);
+  }
+  .campo label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--lo-azul-formal);
+  }
+  .campo input,
+  .campo select {
+    width: 100%;
+    height: 46px;
+    padding: 0 14px;
+    font: inherit;
+    font-size: 15px;
+    color: var(--lo-texto);
+    background: var(--lo-blanco);
+    border: 1px solid var(--lo-borde-fuerte);
+    border-radius: 6px;
+  }
+  .campo input::placeholder { color: var(--lo-texto-meta); opacity: 1; }
+  .campo input:focus-visible,
+  .campo select:focus-visible {
+    outline: 3px solid var(--lo-magenta);
+    outline-offset: 1px;
+    border-color: var(--lo-azul);
+  }
+  .campo select:disabled,
+  .campo input:disabled { background: var(--lo-superficie); cursor: not-allowed; }
+
+  .intro .resumen {
+    margin: 20px 0 14px;
+    min-height: 1.5em;
+    font-size: 14px;
+    color: var(--lo-texto-meta);
+  }
+
+  /* Catálogo */
+  .catalogo {
+    list-style: none;
+    margin: 0 0 48px;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 20px;
+  }
+  .tarjeta {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 22px 22px 20px;
+    background: var(--lo-blanco);
+    border: 1px solid var(--lo-borde);
+    border-top: 4px solid var(--lo-azul);
+    border-radius: var(--radio);
+  }
+  .tarjeta:hover,
+  .tarjeta:focus-within { border-top-color: var(--lo-magenta); }
+
+  .area {
+    align-self: flex-start;
+    margin: 0 0 12px;
+    padding: 3px 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--lo-azul);
+    background: var(--lo-azul-tinte);
+    border-radius: 999px;
+  }
+  .tarjeta h3 {
+    margin: 0 0 8px;
+    font-family: var(--fuente-titulos);
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--lo-azul-formal);
+    overflow-wrap: anywhere;
+  }
+  .tarjeta .descripcion {
+    margin: 0 0 20px;
+    color: var(--lo-texto-sub);
+    overflow-wrap: anywhere;
+  }
+  .tarjeta-pie {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .origen {
+    margin: 0;
+    font-size: 13px;
+    color: var(--lo-texto-meta);
+    overflow-wrap: anywhere;
+  }
+  .boton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 46px;
+    padding: 12px 20px;
+    font-family: var(--fuente);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--lo-blanco);
+    background: var(--lo-azul);
+    border: 0;
+    border-bottom: 3px solid var(--lo-magenta);
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .boton:hover { background: var(--lo-azul-formal); }
+  .boton-secundario {
+    color: var(--lo-azul);
+    background: var(--lo-blanco);
+    border: 1px solid var(--lo-azul);
+    border-bottom: 3px solid var(--lo-magenta);
+  }
+  .boton-secundario:hover { background: var(--lo-azul-tinte); }
+
+  /* Estados (carga, vacío, sin resultados, error) */
+  .estado {
+    margin: 8px 0 48px;
+    padding: 28px 24px;
+    border: 1px dashed var(--lo-borde-fuerte);
+    border-radius: var(--radio);
+    background: var(--lo-superficie);
+    max-width: 720px;
+  }
+  .estado h3 {
+    margin: 0 0 6px;
+    font-family: var(--fuente-titulos);
+    font-size: 18px;
+    color: var(--lo-azul-formal);
+  }
+  .estado p { margin: 0 0 4px; color: var(--lo-texto-sub); }
+  .estado .boton { margin-top: 16px; }
+  .estado.error {
+    border: 1px solid #F3B8B2;
+    border-left: 4px solid var(--lo-rojo);
+    background: var(--lo-rojo-bg);
+  }
+  .estado.error h3 { color: var(--lo-rojo); }
+  .estado code {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 0.92em;
+    background: var(--lo-blanco);
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--lo-borde);
+  }
+
+  [hidden] { display: none !important; }
+
+  /* Pie */
+  .pie {
+    border-top: 1px solid var(--lo-borde);
+    padding: 20px 0 28px;
+    font-size: 13px;
+    color: var(--lo-texto-meta);
+  }
+  .pie p { margin: 0; }
+
+  /* Responsive */
+  @media (max-width: 720px) {
+    .contenedor { padding: 0 16px; }
+    .encabezado .contenedor {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .encabezado-texto { text-align: left; }
+    .logo { height: 40px; }
+    .encabezado h1 { font-size: 21px; }
+    .intro { padding-top: 24px; }
+    .controles { grid-template-columns: 1fr; padding: 16px; }
+    .catalogo { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+  }
+
+  @media print {
+    .controles, .salto { display: none; }
+    .tarjeta { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<a class="salto" href="#catalogo-titulo">Saltar al catálogo</a>
+
+<header class="encabezado" id="encabezado">
+  <div class="contenedor">
+    <!-- Logo oficial (versión blanca). Si el archivo no existe en el repositorio, se oculta automáticamente. -->
+    <img class="logo" id="logo" src="LogoLaOfrenda_Blanco.png" alt="La Ofrenda®" height="48">
+    <div class="encabezado-texto">
+      <p>Grupo Empresarial La Ofrenda</p>
+      <h1>Herramientas La Ofrenda</h1>
+    </div>
+  </div>
+</header>
+
+<main id="contenido">
+  <section class="contenedor intro" aria-labelledby="catalogo-titulo">
+    <h2 id="catalogo-titulo" tabindex="-1">Calculadoras y utilidades</h2>
+    <p>Busque la herramienta que necesita y ábrala en una pestaña nueva. Cada herramienta se mantiene en su propio sitio.</p>
+
+    <div class="controles" role="search" aria-label="Buscar herramientas">
+      <div class="campo">
+        <label for="buscador">Buscar</label>
+        <input id="buscador" type="search" autocomplete="off" spellcheck="false"
+               placeholder="Nombre, descripción o área" aria-describedby="resumen" disabled>
+      </div>
+      <div class="campo">
+        <label for="filtro-area">Área</label>
+        <select id="filtro-area" aria-describedby="resumen" disabled>
+          <option value="">Todas las áreas</option>
+        </select>
+      </div>
+    </div>
+
+    <p class="resumen" id="resumen" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="contenedor" aria-label="Resultados">
+    <div class="estado" id="estado" hidden></div>
+    <ul class="catalogo" id="catalogo" hidden></ul>
+  </section>
+</main>
+
+<footer class="pie">
+  <div class="contenedor">
+    <p>Catálogo mantenido por la Gerencia TIC. Para incluir, actualizar o retirar una herramienta, solicítelo a TIC.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------------- Configuración ---------------- */
+  var ARCHIVO_CATALOGO = 'herramientas.txt';
+  var SEPARADOR = '|';
+  var CAMPOS = 4; // nombre | área | descripción | URL
+
+  /* ---------------- Referencias ---------------- */
+  var el = {
+    encabezado: document.getElementById('encabezado'),
+    logo: document.getElementById('logo'),
+    buscador: document.getElementById('buscador'),
+    filtro: document.getElementById('filtro-area'),
+    resumen: document.getElementById('resumen'),
+    estado: document.getElementById('estado'),
+    catalogo: document.getElementById('catalogo')
+  };
+
+  var herramientas = [];
+
+  /* ---------------- Logo opcional ---------------- */
+  function ocultarLogo() {
+    if (el.logo && el.logo.parentNode) el.logo.parentNode.removeChild(el.logo);
+    el.encabezado.classList.add('sin-logo');
+  }
+  if (el.logo) {
+    if (el.logo.complete && el.logo.naturalWidth === 0) ocultarLogo();
+    else el.logo.addEventListener('error', ocultarLogo);
+  }
+
+  /* ---------------- Utilidades ---------------- */
+  function normalizar(texto) {
+    return String(texto)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function aviso(linea, motivo, contenido) {
+    console.warn('[herramientas.txt] Línea ' + linea + ' omitida: ' + motivo + '.', contenido);
+  }
+
+  function validarUrl(valor) {
+    var url;
+    try {
+      url = new URL(valor);
+    } catch (e) {
+      return { ok: false, motivo: 'la URL no es válida' };
+    }
+    if (url.protocol !== 'https:') {
+      return { ok: false, motivo: 'solo se admiten enlaces HTTPS (se recibió "' + url.protocol + '")' };
+    }
+    if (url.username || url.password) {
+      return { ok: false, motivo: 'la URL no puede incluir usuario ni contraseña' };
+    }
+    if (!url.hostname) {
+      return { ok: false, motivo: 'la URL no tiene dominio' };
+    }
+    return { ok: true, href: url.href, host: url.hostname };
+  }
+
+  /* ---------------- Lectura del catálogo ---------------- */
+  function interpretarCatalogo(texto) {
+    var lineas = texto.replace(/^\uFEFF/, '').split(/\r\n|\r|\n/);
+    var validas = [];
+    var omitidas = 0;
+    var urlsVistas = Object.create(null);
+    var areasCanonicas = Object.create(null);
+
+    lineas.forEach(function (bruta, i) {
+      var n = i + 1;
+      var linea = bruta.trim();
+      if (linea === '' || linea.charAt(0) === '#') return;
+
+      var partes = linea.split(SEPARADOR).map(function (p) { return p.trim(); });
+      if (partes.length !== CAMPOS) {
+        omitidas++;
+        aviso(n, 'se esperaban ' + CAMPOS + ' campos separados por "' + SEPARADOR + '" y hay ' + partes.length, bruta);
+        return;
+      }
+
+      var nombre = partes[0], area = partes[1], descripcion = partes[2], enlace = partes[3];
+      var faltantes = [];
+      if (!nombre) faltantes.push('nombre');
+      if (!area) faltantes.push('área');
+      if (!descripcion) faltantes.push('descripción');
+      if (!enlace) faltantes.push('URL');
+      if (faltantes.length) {
+        omitidas++;
+        aviso(n, 'campo vacío (' + faltantes.join(', ') + ')', bruta);
+        return;
+      }
+
+      var url = validarUrl(enlace);
+      if (!url.ok) {
+        omitidas++;
+        aviso(n, url.motivo, bruta);
+        return;
+      }
+
+      if (urlsVistas[url.href]) {
+        omitidas++;
+        aviso(n, 'URL duplicada (ya aparece en la línea ' + urlsVistas[url.href] + ')', bruta);
+        return;
+      }
+      urlsVistas[url.href] = n;
+
+      // Agrupa áreas sin distinguir mayúsculas, tildes ni espacios: se muestra la primera forma escrita.
+      var claveArea = normalizar(area);
+      if (!areasCanonicas[claveArea]) areasCanonicas[claveArea] = area;
+
+      validas.push({
+        nombre: nombre,
+        area: areasCanonicas[claveArea],
+        claveArea: claveArea,
+        descripcion: descripcion,
+        url: url.href,
+        host: url.host,
+        indice: normalizar(nombre + ' ' + area + ' ' + descripcion)
+      });
+    });
+
+    return { herramientas: validas, omitidas: omitidas };
+  }
+
+  function cargarCatalogo() {
+    mostrarEstado({ titulo: 'Cargando herramientas…', texto: ['Un momento, por favor.'] });
+
+    if (location.protocol === 'file:') {
+      mostrarEstado({
+        tipo: 'error',
+        titulo: 'El catálogo no se puede leer abriendo el archivo directamente',
+        texto: [
+          'El navegador bloquea la lectura de herramientas.txt cuando index.html se abre con doble clic.',
+          'Pruebe el portal desde GitHub Pages o con un servidor local (por ejemplo: python -m http.server 8000).'
+        ]
+      });
+      return;
+    }
+
+    // Ruta relativa al propio sitio: funciona bajo /repositorio/ y con dominio personalizado.
+    var url = new URL(ARCHIVO_CATALOGO, document.baseURI);
+    url.searchParams.set('v', Date.now().toString(36)); // evita copias retenidas en caché
+
+    fetch(url.href, { cache: 'no-store', credentials: 'omit', headers: { 'Accept': 'text/plain' } })
+      .then(function (respuesta) {
+        if (!respuesta.ok) throw new Error('HTTP ' + respuesta.status);
+        return respuesta.text();
+      })
+      .then(function (texto) {
+        var resultado = interpretarCatalogo(texto);
+        herramientas = resultado.herramientas;
+        if (resultado.omitidas) {
+          console.info('[herramientas.txt] ' + herramientas.length + ' herramienta(s) cargada(s), ' +
+            resultado.omitidas + ' línea(s) omitida(s).');
+        }
+        if (!herramientas.length) {
+          mostrarEstado({
+            titulo: 'Aún no hay herramientas publicadas',
+            texto: resultado.omitidas
+              ? ['El catálogo tiene líneas, pero ninguna cumple el formato. El detalle está en la consola del navegador (F12).']
+              : ['Cuando TIC publique la primera herramienta, aparecerá aquí.']
+          });
+          el.resumen.textContent = '';
+          return;
+        }
+        prepararFiltros();
+        habilitarControles(true);
+        aplicarFiltros();
+      })
+      .catch(function (error) {
+        console.error('[herramientas.txt] No se pudo cargar el catálogo:', error);
+        habilitarControles(false);
+        el.resumen.textContent = '';
+        mostrarEstado({
+          tipo: 'error',
+          titulo: 'No se pudo cargar el catálogo',
+          texto: ['Revise su conexión e intente de nuevo. Si el problema continúa, repórtelo a TIC.'],
+          accion: { texto: 'Reintentar', alPulsar: cargarCatalogo }
+        });
+      });
+  }
+
+  /* ---------------- Filtros ---------------- */
+  function prepararFiltros() {
+    var conteo = Object.create(null);
+    var etiquetas = Object.create(null);
+    herramientas.forEach(function (h) {
+      conteo[h.claveArea] = (conteo[h.claveArea] || 0) + 1;
+      etiquetas[h.claveArea] = h.area;
+    });
+
+    var claves = Object.keys(conteo).sort(function (a, b) {
+      return etiquetas[a].localeCompare(etiquetas[b], 'es', { sensitivity: 'base' });
+    });
+
+    var seleccionPrevia = el.filtro.value;
+    while (el.filtro.options.length > 1) el.filtro.remove(1);
+    el.filtro.options[0].textContent = 'Todas las áreas (' + herramientas.length + ')';
+
+    claves.forEach(function (clave) {
+      var opcion = document.createElement('option');
+      opcion.value = clave;
+      opcion.textContent = etiquetas[clave] + ' (' + conteo[clave] + ')';
+      el.filtro.appendChild(opcion);
+    });
+
+    el.filtro.value = conteo[seleccionPrevia] ? seleccionPrevia : '';
+  }
+
+  function habilitarControles(activo) {
+    el.buscador.disabled = !activo;
+    el.filtro.disabled = !activo;
+  }
+
+  function aplicarFiltros() {
+    var consulta = normalizar(el.buscador.value);
+    var terminos = consulta ? consulta.split(' ') : [];
+    var area = el.filtro.value;
+
+    var visibles = herramientas.filter(function (h) {
+      if (area && h.claveArea !== area) return false;
+      return terminos.every(function (t) { return h.indice.indexOf(t) !== -1; });
+    });
+
+    actualizarResumen(visibles.length, consulta, area);
+
+    if (!visibles.length) {
+      el.catalogo.hidden = true;
+      mostrarEstado({
+        titulo: 'No hay herramientas que coincidan',
+        texto: ['Pruebe con otra palabra o elija «Todas las áreas».'],
+        accion: { texto: 'Limpiar búsqueda', alPulsar: limpiarFiltros, secundario: true }
+      });
+      return;
+    }
+
+    ocultarEstado();
+    pintarTarjetas(visibles);
+  }
+
+  function actualizarResumen(cantidad, consulta, area) {
+    var total = herramientas.length;
+    var texto;
+    if (!consulta && !area) {
+      texto = total === 1 ? '1 herramienta disponible.' : total + ' herramientas disponibles.';
+    } else {
+      texto = (cantidad === 1 ? '1 resultado' : cantidad + ' resultados') + ' de ' + total + '.';
+    }
+    el.resumen.textContent = texto;
+  }
+
+  function limpiarFiltros() {
+    el.buscador.value = '';
+    el.filtro.value = '';
+    aplicarFiltros();
+    el.buscador.focus();
+  }
+
+  /* ---------------- Render seguro (solo textContent / setAttribute) ---------------- */
+  function crear(etiqueta, clase, texto) {
+    var nodo = document.createElement(etiqueta);
+    if (clase) nodo.className = clase;
+    if (texto != null) nodo.textContent = texto;
+    return nodo;
+  }
+
+  function pintarTarjetas(lista) {
+    var fragmento = document.createDocumentFragment();
+
+    lista.forEach(function (h) {
+      var item = crear('li');
+      var tarjeta = crear('article', 'tarjeta');
+
+      tarjeta.appendChild(crear('p', 'area', h.area));
+      tarjeta.appendChild(crear('h3', null, h.nombre));
+      tarjeta.appendChild(crear('p', 'descripcion', h.descripcion));
+
+      var pie = crear('div', 'tarjeta-pie');
+      pie.appendChild(crear('p', 'origen', h.host));
+
+      var enlace = crear('a', 'boton');
+      enlace.href = h.url;
+      enlace.target = '_blank';
+      enlace.rel = 'noopener noreferrer';
+      enlace.appendChild(document.createTextNode('Abrir herramienta'));
+      var icono = crear('span', null, '↗');
+      icono.setAttribute('aria-hidden', 'true');
+      enlace.appendChild(icono);
+      enlace.appendChild(crear('span', 'solo-lector', ': ' + h.nombre + ' (se abre en una pestaña nueva)'));
+      pie.appendChild(enlace);
+
+      tarjeta.appendChild(pie);
+      item.appendChild(tarjeta);
+      fragmento.appendChild(item);
+    });
+
+    el.catalogo.replaceChildren(fragmento);
+    el.catalogo.hidden = false;
+  }
+
+  function mostrarEstado(opciones) {
+    el.catalogo.hidden = true;
+    el.estado.className = 'estado' + (opciones.tipo === 'error' ? ' error' : '');
+    el.estado.setAttribute('role', opciones.tipo === 'error' ? 'alert' : 'status');
+
+    var contenido = document.createDocumentFragment();
+    contenido.appendChild(crear('h3', null, opciones.titulo));
+    (opciones.texto || []).forEach(function (t) { contenido.appendChild(crear('p', null, t)); });
+
+    if (opciones.accion) {
+      var boton = crear('button', 'boton' + (opciones.accion.secundario ? ' boton-secundario' : ''), opciones.accion.texto);
+      boton.type = 'button';
+      boton.addEventListener('click', opciones.accion.alPulsar);
+      contenido.appendChild(boton);
+    }
+
+    el.estado.replaceChildren(contenido);
+    el.estado.hidden = false;
+  }
+
+  function ocultarEstado() {
+    el.estado.hidden = true;
+    el.estado.replaceChildren();
+  }
+
+  /* ---------------- Eventos ---------------- */
+  el.buscador.addEventListener('input', aplicarFiltros);
+  el.filtro.addEventListener('change', aplicarFiltros);
+  el.buscador.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && el.buscador.value) {
+      e.preventDefault();
+      el.buscador.value = '';
+      aplicarFiltros();
+    }
+  });
+
+  cargarCatalogo();
+})();
+</script>
+</body>
+</html>
