@@ -36,3 +36,4 @@
 
 Conversor de PDF | Documentos | Convierte archivos a PDF y documentos PDF a otros formatos. | https://laofrendasa.github.io/toPdf/toPdf.html
 Calculadora de Horas Extra | Operaciones | Calcula las horas extra del personal de Operaciones. | https://laofrendasa.github.io/claudeHExtraOp/HorasExtra_Operaciones.html
+Generador de Sorteos | tres60 Agency | A partir de un listado realiza el sorteo o sorteos periódicos. | https://laofrendasa.github.io/sorteos
