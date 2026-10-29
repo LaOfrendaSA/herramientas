@@ -1,1 +1,2041 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cambio formato de archivo · La Ofrenda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: light;
+  --lo-magenta: #FF008F;
+  --lo-azul: #1B396B;
+  --lo-azul-formal: #001E77;
+  --lo-blanco: #FFFFFF;
+  --lo-gris: #B3B3B3;
+  --fondo: #FFFFFF;
+  --fondo-suave: #F0F4FA;
+  --texto: #001E77;
+  --texto-sec: #1B396B;
+  --borde: #D5DDEB;
+  --magenta-faint: rgba(255,0,143,0.06);
+  --verde: #1E8449;
+  --verde-bg: rgba(39,174,96,0.08);
+  --verde-borde: rgba(39,174,96,0.35);
+  --rojo: #B03A2E;
+  --rojo-bg: rgba(231,76,60,0.08);
+  --rojo-borde: rgba(231,76,60,0.35);
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: 'Nunito Sans', 'Segoe UI', Roboto, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: #FFFFFF; }
 
+header.app {
+  background: #FFFFFF;
+  border-bottom: 3px solid var(--lo-magenta);
+  padding: 0 24px;
+}
+header.app .wrap {
+  max-width: 960px; margin: 0 auto; padding: 14px 0;
+  display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+}
+header.app .marca { display: flex; align-items: center; gap: 20px; }
+header.app .logo { height: 48px; width: auto; display: block; object-fit: contain; }
+header.app .sep { width: 1px; align-self: stretch; background: var(--borde); }
+header.app .area {
+  font-size: 9px; letter-spacing: 3px; color: var(--texto-sec); text-transform: uppercase; margin-bottom: 2px; font-weight: 600;
+}
+header.app h1 {
+  margin: 0; font-family: 'Nunito', 'Nunito Sans', sans-serif; font-weight: 700; font-size: 22px; color: var(--texto);
+}
+header.app .local {
+  font-size: 12px; color: var(--texto-sec); max-width: 300px; text-align: right;
+}
+
+main { max-width: 960px; margin: 0 auto; padding: 32px 24px 48px; }
+
+.label {
+  font-size: 10px; letter-spacing: 3px; color: var(--texto-sec); text-transform: uppercase;
+  font-weight: 600; margin: 0 0 12px;
+}
+
+/* Zona de carga */
+.drop {
+  display: block;
+  margin-bottom: 0;
+  position: relative;
+  border: 2px dashed rgba(27,57,107,0.35);
+  border-radius: 8px;
+  background: var(--fondo-suave);
+  padding: 40px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.drop:hover, .drop:focus-visible { border-color: var(--lo-azul); outline: none; }
+.drop.over { border-color: var(--lo-magenta); background: var(--magenta-faint); }
+.drop h2 {
+  font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 22px; margin: 0 0 6px; color: var(--texto);
+}
+.drop p { margin: 0 0 18px; color: var(--texto-sec); }
+.drop input { display: none; }
+.chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.chip {
+  display: inline-block; min-width: 50px; padding: 4px 10px; border-radius: 4px;
+  font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 12px; letter-spacing: 1px;
+  color: #FFFFFF; text-align: center;
+}
+.f-word, .f-excel, .f-ppt, .f-pdf { background: var(--lo-azul); }
+.chip.out { background: #FFFFFF; color: var(--lo-azul); box-shadow: inset 0 0 0 1.5px var(--lo-azul); }
+
+.btn {
+  background: var(--lo-magenta); color: #FFFFFF; font-weight: 700; font-size: 13px; letter-spacing: 2.5px;
+  text-transform: uppercase; border: none; border-radius: 4px; padding: 13px 22px; cursor: pointer;
+  font-family: 'Nunito Sans', sans-serif;
+}
+.btn:focus-visible { outline: 3px solid var(--lo-azul); outline-offset: 2px; }
+.btn-sec {
+  background: transparent; color: var(--lo-azul); border: 1px solid var(--lo-azul); border-radius: 4px;
+  padding: 8px 14px; font-weight: 700; font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  cursor: pointer; font-family: 'Nunito Sans', sans-serif;
+}
+.btn-sec:focus-visible { outline: 3px solid var(--lo-magenta); outline-offset: 2px; }
+
+/* Archivo cargado */
+#panel { display: none; margin-top: 28px; }
+#panel.on { display: block; }
+.file {
+  display: flex; align-items: center; gap: 16px; padding: 16px 18px;
+  border: 1px solid var(--borde); border-left: 4px solid var(--lo-azul); border-radius: 6px; flex-wrap: wrap;
+}
+.file .chip { font-size: 14px; padding: 8px 12px; }
+.file .meta { flex: 1; min-width: 180px; }
+.file .nombre { font-weight: 700; font-size: 15px; word-break: break-all; }
+.file .info { color: var(--texto-sec); font-size: 13px; }
+
+.lista-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.lista-head .label { margin: 0; }
+.lista-head .acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+.lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.file.err { border-left-color: var(--rojo); }
+.file.err .info { color: var(--rojo); font-weight: 600; }
+.file .quitar { padding: 6px 12px; }
+.file details { margin-top: 6px; }
+.file details summary { cursor: pointer; font-size: 12px; font-weight: 700; color: var(--lo-azul); }
+.file details .body { margin-top: 8px; max-height: 260px; overflow: auto; font-size: 12.5px; border-top: 1px solid var(--borde); padding-top: 8px; }
+.file details .body h4 { margin: 10px 0 4px; font-family: 'Nunito', sans-serif; }
+.file details .body p { margin: 0 0 4px; }
+.targets-head { display: flex; align-items: baseline; justify-content: space-between; margin: 28px 0 12px; gap: 12px; flex-wrap: wrap; }
+.targets-head .label { margin: 0; }
+.opcion { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--texto); cursor: pointer; }
+.opciones { display: flex; gap: 10px 24px; flex-wrap: wrap; align-items: center; }
+.opcion select { font: inherit; font-weight: 600; color: var(--texto); border: 1px solid var(--borde); border-radius: 4px; padding: 6px 8px; background: #FFFFFF; }
+.opcion select:focus-visible { outline: 3px solid var(--lo-magenta); outline-offset: 1px; }
+.opcion[hidden] { display: none; }
+.opcion input { width: 18px; height: 18px; accent-color: var(--lo-magenta); margin: 0; cursor: pointer; }
+.opcion input:focus-visible { outline: 3px solid var(--lo-azul); outline-offset: 2px; }
+.targets { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+.target {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px; text-align: left;
+  background: var(--fondo); border: 1px solid var(--borde); border-radius: 6px; padding: 16px;
+  cursor: pointer; font-family: inherit; color: inherit; transition: border-color .12s;
+}
+.target:hover:not(:disabled) { border-color: var(--lo-azul); }
+.target:focus-visible { outline: 3px solid var(--lo-magenta); outline-offset: 2px; }
+.target:disabled { cursor: progress; opacity: .55; }
+.target.busy { border-color: var(--lo-magenta); opacity: 1; }
+.target .ruta { display: flex; align-items: center; gap: 8px; font-family: 'Nunito', sans-serif; font-weight: 800; }
+.target .ruta .flecha { color: var(--texto-sec); font-size: 14px; }
+.target .que { font-weight: 700; font-size: 14px; }
+.target .nota { font-size: 12.5px; color: var(--texto-sec); line-height: 1.45; }
+.target .accion { margin-top: auto; align-self: stretch; text-align: center; background: var(--lo-magenta); color: #FFFFFF; border-radius: 4px; padding: 10px 14px; font-size: 13px; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 700; }
+.target:hover:not(:disabled) .accion { filter: brightness(0.94); }
+
+.alert { margin-top: 18px; border-radius: 4px; padding: 13px 16px; font-weight: 600; display: none; }
+.alert.on { display: block; }
+.alert.ok { background: var(--verde-bg); border: 1px solid var(--verde-borde); color: var(--verde); }
+.alert.err { background: var(--rojo-bg); border: 1px solid var(--rojo-borde); color: var(--rojo); }
+.alert.info { background: var(--fondo-suave); border: 1px solid var(--borde); color: var(--texto); }
+
+.preview { margin-top: 18px; border: 1px solid var(--borde); border-radius: 6px; }
+.preview summary { cursor: pointer; padding: 12px 16px; font-weight: 700; color: var(--lo-azul); }
+.preview .body { padding: 0 16px 16px; max-height: 320px; overflow: auto; font-size: 13px; color: var(--texto); }
+.preview .body h4 { margin: 14px 0 6px; font-family: 'Nunito', sans-serif; }
+.preview .body p { margin: 0 0 6px; }
+
+/* Matriz */
+section.matriz { margin-top: 44px; }
+.matriz p.desc { margin: -4px 0 16px; color: var(--texto-sec); max-width: 70ch; }
+.scroll { overflow-x: auto; border: 1px solid var(--borde); border-radius: 6px; }
+table.mx { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 560px; }
+table.mx th, table.mx td { padding: 11px 12px; text-align: center; border-bottom: 1px solid var(--borde); }
+table.mx thead tr { border-bottom: 2px solid var(--lo-magenta); background: var(--magenta-faint); }
+table.mx thead th { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--texto-sec); font-weight: 700; border-bottom: 2px solid var(--lo-magenta); }
+table.mx tbody th { text-align: left; font-weight: 700; white-space: nowrap; }
+table.mx tbody th .chip { margin-right: 8px; min-width: 52px; }
+table.mx td.si { color: var(--verde); font-weight: 800; font-size: 15px; }
+table.mx td.no { color: rgba(27,57,107,0.6); }
+table.mx tr.actual { background: rgba(27,57,107,0.06); }
+table.mx tr.actual th { box-shadow: inset 4px 0 0 var(--lo-magenta); }
+table.mx tbody tr:last-child th, table.mx tbody tr:last-child td { border-bottom: none; }
+
+.pie {
+  margin-top: 32px; padding: 14px 18px; border: 1px solid var(--borde); border-radius: 4px;
+  font-size: 12px; color: var(--texto-sec); line-height: 1.8;
+}
+.pie b { letter-spacing: 2px; font-size: 10px; text-transform: uppercase; color: var(--texto); }
+
+@media (max-width: 600px) {
+  header.app .local { text-align: left; }
+  header.app .logo { height: 38px; }
+  header.app .marca { gap: 14px; }
+  main { padding: 24px 16px 40px; }
+  .drop { padding: 30px 16px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="app">
+  <div class="wrap">
+    <div class="marca">
+      <img class="logo" src="data:image/png;base64,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" alt="La Ofrenda®" width="122" height="48">
+      <span class="sep" aria-hidden="true"></span>
+      <div>
+        <div class="area">Gerencia TIC</div>
+        <h1>Cambio formato de archivo</h1>
+      </div>
+    </div>
+    <div class="local">Nada se guarda: los archivos se procesan en la memoria de tu navegador y se borran al quitarlos o al cerrar la página.</div>
+  </div>
+</header>
+
+<main>
+  <div class="label">Archivos a convertir</div>
+  <label class="drop" id="drop" tabindex="0" role="button" aria-label="Seleccionar uno o varios archivos para convertir">
+    <input type="file" id="file" accept=".doc,.docx,.xls,.xlsx,.pdf,.pptx" multiple>
+    <h2>Arrastra uno o varios archivos aquí</h2>
+    <p>o haz clic para buscarlos en tu equipo</p>
+    <div class="chips">
+      <span class="chip f-word">DOCX</span>
+      <span class="chip f-excel">XLS</span><span class="chip f-excel">XLSX</span>
+      <span class="chip f-ppt">PPTX</span><span class="chip f-pdf">PDF</span>
+    </div>
+  </label>
+
+  <div id="panel">
+    <div class="lista-head">
+      <div class="label" id="cuenta">Archivos cargados</div>
+      <div class="acciones">
+        <button class="btn-sec" id="agregar" type="button">Agregar más</button>
+        <button class="btn-sec" id="limpiar" type="button">Quitar todos</button>
+      </div>
+    </div>
+    <ul class="lista" id="lista"></ul>
+
+    <div class="targets-head">
+      <div class="label">Convertir a</div>
+      <div class="opciones">
+        <label class="opcion"><input type="checkbox" id="optAcc" checked> Valores en formato contabilidad ($)</label>
+        <label class="opcion" id="optPdfWrap" hidden>PDF a Word:
+          <select id="optPdfWord">
+            <option value="editable">Editable, con el diseño del PDF</option>
+            <option value="exacta">Copia exacta (imagen de cada página)</option>
+          </select>
+        </label>
+      </div>
+    </div>
+    <div class="targets" id="targets"></div>
+
+    <div class="alert" id="alerta" role="status" aria-live="polite"></div>
+  </div>
+
+  <section class="matriz">
+    <div class="label">Combinaciones disponibles</div>
+    <p class="desc">Cada formato de entrada y los formatos a los que se puede convertir. Las filas resaltadas corresponden a los archivos cargados.</p>
+    <div class="scroll">
+      <table class="mx" id="matriz">
+        <thead><tr><th style="text-align:left">Entrada</th><th>PDF</th><th>Word (DOCX)</th><th>Excel (XLSX)</th><th>PowerPoint (PPTX)</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="pie">
+    <b>Privacidad ·</b>
+    Los archivos nunca salen de tu equipo: no se envían a ningún servidor ni se guardan en el navegador, en Claude ni en la nube.
+    Solo existen en la memoria de esta página mientras la tienes abierta; al quitarlos o cerrarla se eliminan. Lo único que queda es el archivo convertido que tú descargas.
+    <br><b>Cómo funciona ·</b>
+    La conversión extrae el contenido del archivo (texto, títulos, listas, tablas y hojas) y lo reconstruye en el formato de destino.
+    Se conserva la información y la estructura; los diseños complejos, imágenes incrustadas y estilos personalizados pueden simplificarse.
+    Con la opción de formato contabilidad, las columnas con valores se convierten a números con formato Contabilidad ($, separador de miles y dos decimales); se excluyen columnas como fechas, años, códigos, cantidades o porcentajes.
+    De PDF a Word y Excel se respeta el diseño: logos e imágenes, tamaño de página, márgenes, fuentes, negritas, colores de texto y de fondo, franjas, bordes, columnas, fechas y valores numéricos. Si necesitas que el Word quede idéntico (aunque no editable), elige la opción Copia exacta.
+    De PDF a PowerPoint cada página se convierte en una diapositiva con su imagen exacta. Los PDF escaneados no contienen texto, por lo que solo se pueden pasar a PowerPoint.
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script>
+(function () {
+'use strict';
+
+/* ---------- Catálogo de formatos y combinaciones ---------- */
+const FORMATS = {
+  doc:  { label: 'DOC',  name: 'Word 97-2003',  fam: 'word'  },
+  docx: { label: 'DOCX', name: 'Word',          fam: 'word'  },
+  xls:  { label: 'XLS',  name: 'Excel 97-2003', fam: 'excel' },
+  xlsx: { label: 'XLSX', name: 'Excel',         fam: 'excel' },
+  pdf:  { label: 'PDF',  name: 'PDF',           fam: 'pdf'   },
+  pptx: { label: 'PPTX', name: 'PowerPoint',    fam: 'ppt'   }
+};
+const OUTPUTS = ['pdf', 'docx', 'xlsx', 'pptx'];
+const TARGETS = {
+  doc:  ['pdf', 'docx', 'xlsx', 'pptx'],
+  docx: ['pdf', 'xlsx', 'pptx'],
+  xls:  ['xlsx', 'pdf', 'docx', 'pptx'],
+  xlsx: ['pdf', 'docx', 'pptx'],
+  pdf:  ['docx', 'xlsx', 'pptx'],
+  pptx: ['pdf', 'docx', 'xlsx']
+};
+const NOTES = {
+  'doc>pdf':   'Texto, párrafos y tablas del documento en un PDF listo para imprimir.',
+  'doc>docx':  'Actualiza el documento al formato moderno de Word.',
+  'doc>xlsx':  'Cada párrafo en una fila y cada tabla en su propia hoja.',
+  'doc>pptx':  'Divide el texto en diapositivas; las tablas van en diapositivas aparte.',
+  'docx>pdf':  'Conserva títulos, listas y tablas del documento.',
+  'docx>xlsx': 'Las tablas del documento pasan a hojas; el texto a una hoja aparte.',
+  'docx>pptx': 'Cada título inicia una diapositiva con sus párrafos como viñetas.',
+  'xls>xlsx':  'Actualiza el libro al formato moderno conservando todas las hojas.',
+  'xls>pdf':   'Cada hoja como tabla en páginas horizontales.',
+  'xls>docx':  'Cada hoja como tabla dentro de un documento Word.',
+  'xls>pptx':  'Las hojas se reparten en diapositivas con tablas.',
+  'xlsx>pdf':  'Cada hoja como tabla en páginas horizontales.',
+  'xlsx>docx': 'Cada hoja como tabla dentro de un documento Word.',
+  'xlsx>pptx': 'Las hojas se reparten en diapositivas con tablas.',
+  'pdf>docx':  'Respeta el diseño del PDF: logos, márgenes, fuentes, negritas, tablas con sus colores de fondo y alineación.',
+  'pdf>xlsx':  'Mantiene el aspecto del PDF: logos, colores de fondo, franjas, bordes, negritas, fechas y valores como datos reales. Una hoja por página.',
+  'pdf>pptx':  'Cada página se vuelve una diapositiva con su imagen exacta.',
+  'pptx>pdf':  'Una página por diapositiva con su título, texto y tablas.',
+  'pptx>docx': 'Cada diapositiva como sección con título y contenido.',
+  'pptx>xlsx': 'Una fila por diapositiva; las tablas en hojas aparte.'
+};
+const OUT_NAMES = { pdf: 'PDF', docx: 'Word', xlsx: 'Excel', pptx: 'PowerPoint' };
+
+/* ---------- Utilidades ---------- */
+const $ = (id) => document.getElementById(id);
+const famClass = (ext) => 'f-' + FORMATS[ext].fam;
+const fmtSize = (b) => b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(1) + ' KB' : (b / 1048576).toFixed(1) + ' MB';
+const baseName = (n) => n.replace(/\.[^.]+$/, '');
+const clean = (s) => String(s == null ? '' : s).replace(/\s+/g, ' ').trim();
+
+function showAlert(kind, msg) {
+  const a = $('alerta');
+  a.className = 'alert on ' + kind;
+  a.textContent = msg;
+}
+function hideAlert() { $('alerta').className = 'alert'; }
+
+function sanitizePdf(s) {
+  return String(s == null ? '' : s)
+    .replace(/[\u201C\u201D\u201E\u00AB\u00BB]/g, '"')
+    .replace(/[\u2018\u2019\u201A]/g, "'")
+    .replace(/[\u2013\u2014\u2212]/g, '-')
+    .replace(/[\u2022\u25CF\u25AA\u25A0\u2023\uF0B7]/g, '-')
+    .replace(/\u2026/g, '...')
+    .replace(/\u00A0/g, ' ')
+    .replace(/[\t]/g, '    ')
+    .replace(/[^\x0A\x0D\x20-\x7E\u00A1-\u00FF\u20AC]/g, '');
+}
+
+function normalizeRows(rows) {
+  const empty = (c) => typeof c === 'number' ? false : String(c).trim() === '';
+  let r = rows.map(row => (row || []).map(c => c == null ? '' : typeof c === 'number' ? c : String(c)));
+  // quitar filas vacías al final
+  while (r.length && r[r.length - 1].every(empty)) r.pop();
+  // quitar filas totalmente vacías intermedias
+  r = r.filter(row => row.some(c => !empty(c)));
+  let cols = 0;
+  r.forEach(row => {
+    let last = row.length - 1;
+    while (last >= 0 && empty(row[last])) last--;
+    cols = Math.max(cols, last + 1);
+  });
+  return r.map(row => {
+    const out = row.slice(0, cols);
+    while (out.length < cols) out.push('');
+    return out;
+  });
+}
+
+/* ---------- Formato contabilidad ---------- */
+// Formato Contabilidad de Excel (es-CO): $ alineado a la izquierda, cero como guion
+const ACC_FMT = '_-"$"* #,##0.00_-;\\-"$"* #,##0.00_-;_-"$"* "-"??_-;_-@_-';
+let ACC_ON = true;
+// Encabezados de columnas que no son valores monetarios
+const NO_MONEY = /(a[ñn]o|fecha|c[oó]d|\bid\b|\bnit\b|c[eé]dula|tel[eé]f|celular|cant|unidades|[ií]tem|n[uú]m|\bno\b|\bn°|\bnro|#|\bmes\b|d[ií]a|%|porc|edad|hora|semana|trimestre|per[ií]odo|postal|documento|consecutivo|orden|lote|referencia|\bref\b|puntos|tasa|cuenta|p[aá]gina|diapositiva)/i;
+
+function parseNumber(c) {
+  if (typeof c === 'number') return isFinite(c) ? c : null;
+  let t = String(c == null ? '' : c).trim();
+  if (!t || t.length > 30) return null;
+  let neg = false;
+  if (/^\(.*\)$/.test(t)) { neg = true; t = t.slice(1, -1).trim(); }
+  if (/^-/.test(t)) { neg = !neg; t = t.slice(1).trim(); }
+  t = t.replace(/^(COP|USD|US\$|\$|€)\s*/i, '').replace(/\s*(COP|USD|€)$/i, '');
+  if (/^-/.test(t)) { neg = !neg; t = t.slice(1).trim(); }
+  else if (/-$/.test(t)) { neg = !neg; t = t.slice(0, -1).trim(); }
+  t = t.replace(/[\s\u00A0]/g, '');
+  if (!/^\d[\d.,]*$/.test(t) || /[.,]$/.test(t)) return null;
+  if (/^0\d/.test(t)) return null; // códigos con ceros a la izquierda
+  const dots = (t.match(/\./g) || []).length, commas = (t.match(/,/g) || []).length;
+  let dec = null;
+  if (dots && commas) dec = t.lastIndexOf('.') > t.lastIndexOf(',') ? '.' : ',';
+  else if (dots + commas === 1) {
+    const sep = dots ? '.' : ',';
+    const parts = t.split(sep);
+    dec = (parts[1].length === 3 && parts[0] !== '0') ? null : sep;
+  }
+  let intPart = t, frac = '';
+  if (dec) {
+    const i = t.lastIndexOf(dec);
+    intPart = t.slice(0, i); frac = t.slice(i + 1);
+    if (!/^\d+$/.test(frac)) return null;
+  }
+  const th = dec === '.' ? ',' : dec === ',' ? '.' : (dots ? '.' : ',');
+  if (intPart.indexOf(th) >= 0) {
+    if (!new RegExp('^\\d{1,3}(\\' + th + '\\d{3})+$').test(intPart)) return null;
+    intPart = intPart.split(th).join('');
+  }
+  if (!/^\d+$/.test(intPart) || intPart.length > 15) return null;
+  const n = parseFloat(intPart + (frac ? '.' + frac : ''));
+  return neg ? -n : n;
+}
+
+function accText(n) {
+  if (Math.abs(n) < 0.005) return '$ -';
+  const s = Math.abs(n).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return (n < 0 ? '-$ ' : '$ ') + s;
+}
+
+function cellStr(c) {
+  if (typeof c !== 'number') return c == null ? '' : String(c);
+  return Number.isInteger(c) ? String(c) : c.toLocaleString('es-CO', { maximumFractionDigits: 6, useGrouping: false });
+}
+
+// Detecta qué columnas de una tabla contienen valores monetarios
+function moneyCols(rows) {
+  const out = { cols: [], hasHeader: false };
+  if (!rows.length) return out;
+  const ncols = Math.max(...rows.map(r => r.length));
+  out.hasHeader = rows[0].some(c => cellStr(c).trim() !== '' && parseNumber(c) === null);
+  const body = out.hasHeader ? rows.slice(1) : rows;
+  for (let c = 0; c < ncols; c++) {
+    const h = out.hasHeader ? cellStr(rows[0][c]) : '';
+    if (h && NO_MONEY.test(h)) { out.cols.push(false); continue; }
+    const vals = body.map(r => r[c]).filter(v => cellStr(v).trim() !== '');
+    const nums = vals.map(parseNumber).filter(v => v !== null);
+    if (!nums.length || nums.length < vals.length * 0.6) { out.cols.push(false); continue; }
+    if (nums.every(v => Number.isInteger(v) && v >= 1900 && v <= 2100)) { out.cols.push(false); continue; }
+    out.cols.push(true);
+  }
+  return out;
+}
+
+// Filas listas para mostrar (PDF, Word, PowerPoint)
+function displayTable(rows) {
+  if (!ACC_ON) return { rows: rows.map(r => r.map(cellStr)), money: [] };
+  const m = moneyCols(rows);
+  const money = m.cols;
+  const out = rows.map((r, ri) => r.map((c, ci) => {
+    if (ri === 0 && m.hasHeader) return cellStr(c);
+    if (money[ci]) { const n = parseNumber(c); if (n !== null) return accText(n); }
+    return cellStr(c);
+  }));
+  return { rows: out, money: money.map((v, i) => v ? i : -1).filter(i => i >= 0) };
+}
+
+/* ---------- Matriz de combinaciones ---------- */
+function renderMatrix(current) {
+  const tb = document.querySelector('#matriz tbody');
+  tb.innerHTML = '';
+  Object.keys(FORMATS).forEach(ext => {
+    const tr = document.createElement('tr');
+    if (current && current.includes(ext)) tr.className = 'actual';
+    const th = document.createElement('th');
+    th.innerHTML = '<span class="chip ' + famClass(ext) + '">' + FORMATS[ext].label + '</span>' + FORMATS[ext].name;
+    tr.appendChild(th);
+    OUTPUTS.forEach(out => {
+      const td = document.createElement('td');
+      if (TARGETS[ext].includes(out)) {
+        td.className = 'si'; td.textContent = '✓';
+        td.title = FORMATS[ext].label + ' a ' + out.toUpperCase() + ': ' + (NOTES[ext + '>' + out] || '');
+      } else {
+        td.className = 'no'; td.textContent = 'Mismo formato';
+        td.style.fontSize = '11px';
+      }
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+}
+renderMatrix(null);
+
+/* ---------- Lectores (extraen un modelo común) ---------- */
+// Modelo: { kind: 'doc'|'sheets'|'slides'|'pdf', sections: [{ title, blocks: [...], rows? }], wb?, pdf? }
+// Bloques: {type:'heading', level, text} | {type:'para', text} | {type:'list', items} | {type:'table', rows}
+
+function htmlToBlocks(html) {
+  const dom = new DOMParser().parseFromString('<div>' + html + '</div>', 'text/html');
+  const blocks = [];
+  const root = dom.body.firstElementChild;
+  const walk = (el) => {
+    Array.from(el.children).forEach(ch => {
+      const tag = ch.tagName.toLowerCase();
+      if (/^h[1-6]$/.test(tag)) {
+        const t = clean(ch.textContent); if (t) blocks.push({ type: 'heading', level: +tag[1], text: t });
+      } else if (tag === 'p') {
+        const t = clean(ch.textContent); if (t) blocks.push({ type: 'para', text: t });
+      } else if (tag === 'ul' || tag === 'ol') {
+        const items = Array.from(ch.querySelectorAll(':scope > li')).map(li => clean(li.textContent)).filter(Boolean);
+        if (items.length) blocks.push({ type: 'list', items });
+      } else if (tag === 'table') {
+        const rows = Array.from(ch.querySelectorAll('tr')).map(tr => Array.from(tr.children).map(td => clean(td.textContent)));
+        const nr = normalizeRows(rows);
+        if (nr.length) blocks.push({ type: 'table', rows: nr });
+      } else if (ch.children.length) {
+        walk(ch);
+      } else {
+        const t = clean(ch.textContent); if (t) blocks.push({ type: 'para', text: t });
+      }
+    });
+  };
+  walk(root);
+  return blocks;
+}
+
+async function readDocx(buf) {
+  const res = await mammoth.convertToHtml({ arrayBuffer: buf });
+  const blocks = htmlToBlocks(res.value);
+  return { kind: 'doc', sections: [{ title: null, blocks }] };
+}
+
+// Lector de Word 97-2003 (.doc) basado en la tabla de piezas del formato binario
+async function readDoc(buf) {
+  const u8 = new Uint8Array(buf);
+  const cfb = XLSX.CFB.read(u8, { type: 'array' });
+  const get = (name) => {
+    const e = XLSX.CFB.find(cfb, name);
+    return e ? new Uint8Array(e.content) : null;
+  };
+  const wd = get('WordDocument');
+  if (!wd) throw new Error('El archivo no parece ser un documento de Word 97-2003 válido.');
+  const u16 = (b, o) => b[o] | (b[o + 1] << 8);
+  const u32 = (b, o) => (b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24)) >>> 0;
+  if (u16(wd, 0) !== 0xA5EC) throw new Error('El archivo .doc no tiene un formato reconocible.');
+  const flags = u16(wd, 0x0A);
+  if (flags & 0x0100) throw new Error('El documento está protegido con contraseña.');
+  const tbl = get((flags & 0x0200) ? '1Table' : '0Table');
+  if (!tbl) throw new Error('No se encontró la tabla de contenido del documento .doc.');
+  const ccpText = u32(wd, 0x4C);
+  const fcClx = u32(wd, 0x01A2);
+  let i = fcClx;
+  while (tbl[i] === 0x01) { i += 3 + u16(tbl, i + 1); }
+  if (tbl[i] !== 0x02) throw new Error('No se pudo leer el texto del documento .doc.');
+  const lcb = u32(tbl, i + 1); i += 5;
+  const n = (lcb - 4) / 12;
+  const pcdBase = i + (n + 1) * 4;
+  const dec1252 = new TextDecoder('windows-1252');
+  const dec16 = new TextDecoder('utf-16le');
+  let text = '';
+  for (let k = 0; k < n; k++) {
+    const cpStart = u32(tbl, i + k * 4), cpEnd = u32(tbl, i + (k + 1) * 4);
+    const len = cpEnd - cpStart;
+    const fcRaw = u32(tbl, pcdBase + k * 8 + 2);
+    const compressed = (fcRaw & 0x40000000) !== 0;
+    const fc = fcRaw & 0x3FFFFFFF;
+    if (compressed) {
+      const s = fc / 2;
+      text += dec1252.decode(wd.subarray(s, s + len));
+    } else {
+      text += dec16.decode(wd.subarray(fc, fc + len * 2));
+    }
+    if (text.length >= ccpText) break;
+  }
+  text = text.slice(0, ccpText);
+  // quitar códigos de campo, conservando el resultado visible
+  let prev;
+  do {
+    prev = text;
+    text = text.replace(/\x13[^\x13\x14\x15]*\x14([^\x13\x14\x15]*)\x15/g, '$1')
+               .replace(/\x13[^\x13\x14\x15]*\x15/g, '');
+  } while (text !== prev);
+  text = text.replace(/[\x13\x14\x15\x01\x08\x02\x05]/g, '')
+             .replace(/\x1E/g, '-').replace(/\x1F/g, '')
+             .replace(/[\x0B\x0C]/g, '\r');
+  const blocks = [];
+  let table = null, row = [];
+  text.split('\r').forEach(par => {
+    if (par.indexOf('\x07') >= 0) {
+      if (!table) { table = []; row = []; }
+      const parts = par.split('\x07');
+      const tail = parts.pop(); // texto tras la última marca (normalmente vacío)
+      parts.forEach(p => {
+        const t = clean(p);
+        if (t === '' && row.length) { table.push(row); row = []; }
+        else row.push(t);
+      });
+      const tt = clean(tail);
+      if (tt && row.length) row.push(tt);
+      else if (tt) {
+        const nr = normalizeRows(table);
+        if (nr.length) blocks.push({ type: 'table', rows: nr });
+        table = null; row = [];
+        blocks.push({ type: 'para', text: tt });
+      }
+    } else {
+      if (table) {
+        if (row.length) table.push(row);
+        const nr = normalizeRows(table);
+        if (nr.length) blocks.push({ type: 'table', rows: nr });
+        table = null; row = [];
+      }
+      const t = clean(par);
+      if (t) blocks.push({ type: 'para', text: t });
+    }
+  });
+  if (table) {
+    if (row.length) table.push(row);
+    const nr = normalizeRows(table);
+    if (nr.length) blocks.push({ type: 'table', rows: nr });
+  }
+  if (!blocks.length) throw new Error('No se encontró texto en el documento .doc.');
+  return { kind: 'doc', sections: [{ title: null, blocks }] };
+}
+
+function sheetRows(ws) {
+  if (!ws['!ref']) return [];
+  const rg = XLSX.utils.decode_range(ws['!ref']);
+  const rows = [];
+  for (let R = rg.s.r; R <= rg.e.r; R++) {
+    const row = [];
+    for (let C = rg.s.c; C <= rg.e.c; C++) {
+      const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
+      if (!cell || cell.v == null) row.push('');
+      else if (cell.t === 'n' && !(cell.z && /%|[dmyhs]{2}/i.test(String(cell.z).replace(/"[^"]*"/g, '')))) row.push(cell.v);
+      else if (cell.w != null) row.push(cell.w);
+      else if (cell.v instanceof Date) row.push(cell.v.toLocaleDateString('es-CO'));
+      else row.push(String(cell.v));
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+
+async function readSheet(buf) {
+  const wb = XLSX.read(new Uint8Array(buf), { type: 'array', cellDates: true });
+  const sections = wb.SheetNames.map(name => {
+    const rows = normalizeRows(sheetRows(wb.Sheets[name]));
+    return { title: name, blocks: rows.length ? [{ type: 'table', rows }] : [] };
+  });
+  return { kind: 'sheets', sections, buf: buf.slice(0) };
+}
+
+// Aplica formato contabilidad a las columnas de valores de una hoja de Excel
+function applyAccounting(ws) {
+  if (!ws['!ref']) return;
+  const rg = XLSX.utils.decode_range(ws['!ref']);
+  // primera fila con contenido = encabezado
+  let r0 = rg.s.r, found = false;
+  for (; r0 <= rg.e.r && !found; r0++) {
+    for (let C = rg.s.c; C <= rg.e.c; C++) { const c = ws[XLSX.utils.encode_cell({ r: r0, c: C })]; if (c && c.v != null && String(c.v).trim() !== '') { found = true; break; } }
+    if (found) break;
+  }
+  if (!found) return;
+  const rows = [];
+  for (let R = r0; R <= rg.e.r; R++) {
+    const row = [];
+    for (let C = rg.s.c; C <= rg.e.c; C++) {
+      const c = ws[XLSX.utils.encode_cell({ r: R, c: C })];
+      row.push(!c || c.v == null ? '' : (c.t === 'n' ? c.v : (c.w != null ? c.w : String(c.v))));
+    }
+    rows.push(row);
+  }
+  const m = moneyCols(rows);
+  const widths = ws['!cols'] || [];
+  m.cols.forEach((isMoney, ci) => {
+    const C = rg.s.c + ci;
+    if (!isMoney) return;
+    for (let R = r0 + (m.hasHeader ? 1 : 0); R <= rg.e.r; R++) {
+      const ref = XLSX.utils.encode_cell({ r: R, c: C });
+      const cell = ws[ref];
+      if (!cell) continue;
+      if (cell.t === 'n') { cell.z = ACC_FMT; delete cell.w; }
+      else if (cell.t === 's') {
+        const n = parseNumber(cell.v);
+        if (n !== null) { ws[ref] = { t: 'n', v: n, z: ACC_FMT }; }
+      }
+    }
+    const w = widths[C] || {};
+    widths[C] = { wch: Math.max(w.wch || 0, 16) };
+  });
+  ws['!cols'] = widths;
+}
+
+// Nombre de fuente legible a partir del nombre interno del PDF
+function fontFamily(name, generic) {
+  let n = String(name || '').replace(/^[A-Z]{6}\+/, '').split(/[-,]/)[0];
+  n = n.replace(/(PSMT|PS|MT|Std|Pro|LT)$/,'').replace(/([a-z])([A-Z])/g, '$1 $2').trim();
+  const low = n.toLowerCase();
+  if (!n || /^g_d\d|^f\d|^t\d|^tt\d/i.test(n)) return generic === 'serif' ? 'Times New Roman' : generic === 'monospace' ? 'Courier New' : 'Arial';
+  if (low.startsWith('helvetica') || low.startsWith('arial')) return 'Arial';
+  if (low.startsWith('times')) return 'Times New Roman';
+  if (low.startsWith('courier')) return 'Courier New';
+  if (low.startsWith('symbol')) return 'Symbol';
+  return n;
+}
+
+async function readPdf(buf) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf), isEvalSupported: false }).promise;
+  const sections = [];
+  let totalText = 0;
+  const PATH_OPS = [pdfjsLib.OPS.constructPath, pdfjsLib.OPS.rectangle].filter(x => x != null);
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const vp = page.getViewport({ scale: 1 });
+    const tc = await page.getTextContent();
+    // fuentes: nombre, negrita, cursiva
+    const fonts = {};
+    let pathOps = 0;
+    let gfx = { fills: [], lines: [], images: [] };
+    try {
+      const ol = await page.getOperatorList();
+      ol.fnArray.forEach(fn => { if (PATH_OPS.includes(fn)) pathOps++; });
+      gfx = readGraphics(ol, vp);
+    } catch (e) { /* sin lista de operaciones */ }
+    Object.keys(tc.styles || {}).forEach(fn => {
+      const generic = tc.styles[fn].fontFamily;
+      let info = { family: fontFamily('', generic), bold: false, italic: false };
+      try {
+        const fo = page.commonObjs.has(fn) ? page.commonObjs.get(fn) : null;
+        if (fo) {
+          const nm = fo.name || fo.fallbackName || '';
+          info = {
+            family: fontFamily(nm, generic),
+            bold: !!fo.bold || !!fo.black || /bold|black|heavy|semibold|demi/i.test(nm),
+            italic: !!fo.italic || /italic|oblique/i.test(nm)
+          };
+        }
+      } catch (e) { /* fuente no disponible */ }
+      fonts[fn] = info;
+    });
+    const items = tc.items.filter(it => it.str && it.str.trim() !== '').map(it => {
+      const pt = vp.convertToViewportPoint(it.transform[4], it.transform[5]);
+      const h = Math.abs(it.transform[3]) || Math.hypot(it.transform[2], it.transform[3]) || it.height || 10;
+      const f = fonts[it.fontName] || { family: 'Arial', bold: false, italic: false };
+      return { str: it.str, x: pt[0], yb: pt[1], w: it.width || 0, h, bold: f.bold, italic: f.italic, family: f.family };
+    });
+    // agrupar en líneas (yb = línea base medida desde arriba)
+    items.sort((a, b) => a.yb - b.yb || a.x - b.x);
+    const lines = [];
+    items.forEach(it => {
+      const line = lines.find(l => Math.abs(l.yb - it.yb) <= Math.max(2, it.h * 0.35));
+      if (line) line.items.push(it); else lines.push({ yb: it.yb, items: [it] });
+    });
+    lines.sort((a, b) => a.yb - b.yb);
+    lines.forEach(l => {
+      l.items.sort((a, b) => a.x - b.x);
+      l.h = Math.max(...l.items.map(i => i.h));
+      const cells = []; let cur = null;
+      l.items.forEach(it => {
+        if (cur) {
+          const gap = it.x - cur.x1;
+          if (gap <= Math.max(6, l.h * 0.9)) {
+            const sp = gap > l.h * 0.15 && !/\s$/.test(cur.text) && !/^\s/.test(it.str) ? ' ' : '';
+            cur.text += sp + it.str; cur.x1 = Math.max(cur.x1, it.x + it.w);
+            cur.runs.push({ text: sp + it.str, bold: it.bold, italic: it.italic, size: it.h, family: it.family });
+            if (!it.bold) cur.boldAll = false;
+            return;
+          }
+          cells.push(cur);
+        }
+        cur = { text: it.str, x0: it.x, x1: it.x + it.w, size: it.h, bold: it.bold, boldAll: it.bold, italic: it.italic, family: it.family,
+          top: it.yb - it.h * 0.85, bottom: it.yb + it.h * 0.22, runs: [] };
+        cur.runs.push({ text: it.str, bold: it.bold, italic: it.italic, size: it.h, family: it.family });
+      });
+      if (cur) cells.push(cur);
+      cells.forEach(c => {
+        c.text = clean(c.text); c.bold = c.boldAll; delete c.boldAll;
+        // fragmentos con distinto estilo (p. ej. etiqueta en negrita + valor normal)
+        const mixed = c.runs.some(r => r.bold !== c.runs[0].bold || r.italic !== c.runs[0].italic || Math.abs(r.size - c.runs[0].size) > 0.6);
+        if (mixed) {
+          const merged = [];
+          c.runs.forEach(r => { const last = merged[merged.length - 1]; if (last && last.bold === r.bold && last.italic === r.italic && Math.abs(last.size - r.size) <= 0.6) last.text += r.text; else merged.push(Object.assign({}, r)); });
+          merged[0].text = merged[0].text.replace(/^\s+/, '');
+          merged[merged.length - 1].text = merged[merged.length - 1].text.replace(/\s+$/, '');
+          c.runs = merged.filter(r => r.text);
+        } else c.runs = null;
+      });
+      l.cells = cells.filter(c => c.text);
+      l.x0 = l.cells.length ? l.cells[0].x0 : 0;
+      l.x1 = l.cells.length ? l.cells[l.cells.length - 1].x1 : 0;
+      l.text = l.cells.map(c => c.text).join('  ');
+      delete l.items;
+    });
+    const ls = lines.filter(l => l.cells.length);
+    totalText += ls.length;
+    // bloques genéricos (para PowerPoint y vista previa)
+    const heights = ls.map(t => t.h).sort((a, b) => a - b);
+    const median = heights.length ? heights[Math.floor(heights.length / 2)] : 10;
+    const blocks = [];
+    let para = null, last = null;
+    ls.forEach(t => {
+      const isHead = t.h > median * 1.3 && t.text.length < 120;
+      if (isHead) {
+        if (para) { blocks.push(para); para = null; }
+        blocks.push({ type: 'heading', level: t.h > median * 1.7 ? 1 : 2, text: t.text });
+      } else {
+        const gap = last ? (t.yb - last.yb) : 0;
+        if (para && gap < t.h * 1.7 && Math.abs(last.h - t.h) < 1.5) {
+          para.text = para.text.replace(/-$/, '') + (para.text.endsWith('-') ? '' : ' ') + t.text;
+        } else {
+          if (para) blocks.push(para);
+          para = { type: 'para', text: t.text };
+        }
+      }
+      last = t;
+    });
+    if (para) blocks.push(para);
+    sections.push({
+      title: 'Página ' + p, blocks,
+      rows: normalizeRows(ls.map(l => l.cells.map(c => c.text))),
+      layout: { w: vp.width, h: vp.height, lines: ls, hasLines: pathOps >= 6, fills: gfx.fills, rules: gfx.lines, images: gfx.images }
+    });
+  }
+  return { kind: 'pdf', sections, pdf, hasText: totalText > 0 };
+}
+
+// Rellenos, líneas e imágenes de la página (coordenadas desde arriba a la izquierda)
+function readGraphics(ol, vp) {
+  const O = pdfjsLib.OPS;
+  const out = { fills: [], lines: [], images: [] };
+  let ctm = [1, 0, 0, 1, 0, 0], fill = [0, 0, 0], stroke = [0, 0, 0];
+  const stack = [];
+  let shapes = [];
+  const compose = (m, n) => [m[0] * n[0] + m[2] * n[1], m[1] * n[0] + m[3] * n[1], m[0] * n[2] + m[2] * n[3], m[1] * n[2] + m[3] * n[3], m[0] * n[4] + m[2] * n[5] + m[4], m[1] * n[4] + m[3] * n[5] + m[5]];
+  const toView = (x, y) => { const px = ctm[0] * x + ctm[2] * y + ctm[4], py = ctm[1] * x + ctm[3] * y + ctm[5]; return vp.convertToViewportPoint(px, py); };
+  const bbox = (pts) => { const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]); return { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) }; };
+  const pageArea = vp.width * vp.height;
+  const addFill = (b, col) => {
+    const w = b.x1 - b.x0, h = b.y1 - b.y0;
+    if (w <= 2.2 || h <= 2.2) { out.lines.push(Object.assign({ color: col.slice(0) }, b)); return; }
+    if (w * h > pageArea * 0.85) return;
+    out.fills.push(Object.assign({ color: col.slice(0) }, b));
+  };
+  const addStroke = (sh, col) => {
+    if (sh.rect) {
+      const b = sh.b;
+      [[b.x0, b.y0, b.x1, b.y0], [b.x0, b.y1, b.x1, b.y1], [b.x0, b.y0, b.x0, b.y1], [b.x1, b.y0, b.x1, b.y1]]
+        .forEach(([x0, y0, x1, y1]) => out.lines.push({ x0, y0, x1, y1, color: col.slice(0) }));
+    } else {
+      for (let i = 1; i < sh.pts.length; i++) {
+        const b = bbox([sh.pts[i - 1], sh.pts[i]]);
+        if (b.x1 - b.x0 <= 2 || b.y1 - b.y0 <= 2) out.lines.push(Object.assign({ color: col.slice(0) }, b));
+      }
+    }
+  };
+  const IMG = [O.paintImageXObject, O.paintInlineImageXObject, O.paintImageMaskXObject, O.paintJpegXObject, O.paintImageXObjectRepeat].filter(x => x != null);
+  for (let k = 0; k < ol.fnArray.length; k++) {
+    const fn = ol.fnArray[k], args = ol.argsArray[k];
+    if (fn === O.save) stack.push({ ctm, fill, stroke });
+    else if (fn === O.restore) { const st = stack.pop(); if (st) ({ ctm, fill, stroke } = st); }
+    else if (fn === O.transform) ctm = compose(ctm, args);
+    else if (fn === O.paintFormXObjectBegin) { stack.push({ ctm, fill, stroke }); if (args && args[0]) ctm = compose(ctm, args[0]); }
+    else if (fn === O.paintFormXObjectEnd) { const st = stack.pop(); if (st) ({ ctm, fill, stroke } = st); }
+    else if (fn === O.setFillRGBColor) fill = Array.from(args).slice(0, 3);
+    else if (fn === O.setStrokeRGBColor) stroke = Array.from(args).slice(0, 3);
+    else if (fn === O.constructPath) {
+      const ops = args[0], co = args[1];
+      let j = 0, cur = null;
+      ops.forEach(op => {
+        if (op === O.rectangle) {
+          const [x, y, w, h] = [co[j], co[j + 1], co[j + 2], co[j + 3]]; j += 4;
+          shapes.push({ rect: true, b: bbox([toView(x, y), toView(x + w, y), toView(x, y + h), toView(x + w, y + h)]) });
+          cur = null;
+        } else if (op === O.moveTo) { cur = { rect: false, pts: [toView(co[j], co[j + 1])] }; shapes.push(cur); j += 2; }
+        else if (op === O.lineTo) { if (!cur) { cur = { rect: false, pts: [] }; shapes.push(cur); } cur.pts.push(toView(co[j], co[j + 1])); j += 2; }
+        else if (op === O.curveTo) { if (cur) cur.pts.push(toView(co[j + 4], co[j + 5])); j += 6; }
+        else if (op === O.curveTo2 || op === O.curveTo3) { if (cur) cur.pts.push(toView(co[j + 2], co[j + 3])); j += 4; }
+        else if (op === O.closePath) { if (cur && cur.pts.length) cur.pts.push(cur.pts[0]); }
+      });
+    }
+    else if (fn === O.fill || fn === O.eoFill || fn === O.fillStroke || fn === O.eoFillStroke || fn === O.closeFillStroke || fn === O.closeEOFillStroke) {
+      shapes.forEach(sh => { const b = sh.rect ? sh.b : (sh.pts.length ? bbox(sh.pts) : null); if (b) addFill(b, fill); });
+      if (fn !== O.fill && fn !== O.eoFill) shapes.forEach(sh => addStroke(sh, stroke));
+      shapes = [];
+    }
+    else if (fn === O.stroke || fn === O.closeStroke) { shapes.forEach(sh => addStroke(sh, stroke)); shapes = []; }
+    else if (fn === O.endPath) shapes = [];
+    else if (IMG.includes(fn)) {
+      const b = bbox([toView(0, 0), toView(1, 0), toView(0, 1), toView(1, 1)]);
+      if ((b.x1 - b.x0) * (b.y1 - b.y0) > 300 && (b.x1 - b.x0) * (b.y1 - b.y0) < pageArea * 0.85) out.images.push(b);
+    }
+  }
+  return out;
+}
+
+// Columnas de una zona del PDF según la alineación del texto (izquierda o derecha)
+function buildGrid(lines) {
+  if (!lines.length) return { cols: [{ x0: 0, x1: 1 }], rows: [], bounds: [0, 1] };
+  const maxCells = Math.max(...lines.map(l => l.cells.length));
+  // solo las filas con estructura de tabla definen las columnas
+  const multi = lines.filter(l => l.cells.length >= 2 && l.cells.length > maxCells / 2);
+  const fullMin = Math.max(3, Math.ceil(maxCells * 0.8));
+  const all = [];
+  multi.forEach(l => l.cells.forEach(c => all.push({ c, full: l.cells.length >= fullMin, num: parseNumber(c.text) !== null })));
+  const TOL = 3.5;
+  const clusterize = (sel, key) => {
+    const arr = all.map((o, i) => ({ o, i })).filter(x => sel(x.o)).map(x => ({ v: key(x.o.c), i: x.i })).sort((a, b) => a.v - b.v);
+    const cl = [];
+    arr.forEach(a => { const last = cl[cl.length - 1]; if (last && a.v - last.vmax <= TOL) { last.items.push(a.i); last.vmax = a.v; } else cl.push({ items: [a.i], vmax: a.v }); });
+    return cl.filter(c => c.items.length >= 2 || c.items.some(i => all[i].full));
+  };
+  const clusters = clusterize(() => true, c => c.x0).concat(clusterize(o => o.num, c => c.x1));
+  // unir grupos que comparten celdas
+  const parent = clusters.map((_, i) => i);
+  const find = (i) => parent[i] === i ? i : (parent[i] = find(parent[i]));
+  const owner = {};
+  clusters.forEach((cl, ci) => cl.items.forEach(i => { if (owner[i] != null) parent[find(ci)] = find(owner[i]); else owner[i] = ci; }));
+  const groups = {};
+  Object.keys(owner).forEach(i => { const r = find(owner[i]); (groups[r] = groups[r] || []).push(all[i].c); });
+  const pct = (arr, q) => { const s2 = arr.slice().sort((a, b) => a - b); return s2[Math.min(s2.length - 1, Math.floor(q * (s2.length - 1)))]; };
+  let cols = Object.values(groups).map(cs => ({ x0: Math.min(...cs.map(c => c.x0)), x1: pct(cs.map(c => c.x1), cs.length > 4 ? 0.85 : 1) }))
+    .sort((a, b) => a.x0 - b.x0);
+  // fusionar columnas que se superponen
+  const merged = [];
+  cols.forEach(c => {
+    const last = merged[merged.length - 1];
+    const ov = last ? Math.min(last.x1, c.x1) - Math.max(last.x0, c.x0) : -1;
+    if (last && ov > 0.4 * Math.min(last.x1 - last.x0, c.x1 - c.x0)) { last.x0 = Math.min(last.x0, c.x0); last.x1 = Math.max(last.x1, c.x1); }
+    else merged.push(Object.assign({}, c));
+  });
+  cols = merged.length ? merged : [{ x0: Math.min(...lines.map(l => l.x0)), x1: Math.max(...lines.map(l => l.x1)) }];
+  // un título (p. ej. a la izquierda) sobre números alineados a la derecha: misma columna
+  const nearest = (c) => { let best = 0, bd = Infinity; cols.forEach((col, i) => { const d = Math.max(col.x0 - c.x1, c.x0 - col.x1, 0) - Math.max(0, Math.min(col.x1, c.x1) - Math.max(col.x0, c.x0)); if (d < bd) { bd = d; best = i; } }); return best; };
+  let again = true;
+  while (again && cols.length > 1) {
+    again = false;
+    const occ = multi.map(l => new Set(l.cells.map(nearest)));
+    for (let i = 0; i < cols.length - 1; i++) {
+      const both = occ.some(o => o.has(i) && o.has(i + 1));
+      const cntA = occ.filter(o => o.has(i)).length, cntB = occ.filter(o => o.has(i + 1)).length;
+      if (!both && cols[i + 1].x0 - cols[i].x1 < 12 && Math.min(cntA, cntB) <= 2) {
+        cols[i] = { x0: Math.min(cols[i].x0, cols[i + 1].x0), x1: Math.max(cols[i].x1, cols[i + 1].x1) };
+        cols.splice(i + 1, 1); again = true; break;
+      }
+    }
+  }
+  const n = cols.length;
+  const leftX = Math.min(cols[0].x0, ...lines.map(l => l.x0));
+  const rightX = Math.max(cols[n - 1].x1, ...lines.map(l => l.x1));
+  const bounds = [leftX - 2];
+  for (let i = 1; i < n; i++) bounds.push(cols[i - 1].x1 < cols[i].x0 ? (cols[i - 1].x1 + cols[i].x0) / 2 : cols[i].x0 - 1);
+  bounds.push(rightX + 3);
+  // asignar celdas a columnas, en orden y sin repetir
+  const place = (l) => {
+    const out = [];
+    let minCol = 0;
+    const few = l.cells.length <= Math.max(1, Math.floor(maxCells / 2));
+    l.cells.forEach(c => {
+      const cands = cols.map((col, i) => ({ i, ov: Math.min(bounds[i + 1], c.x1) - Math.max(bounds[i], c.x0), cov: Math.min(col.x1, c.x1) - Math.max(col.x0, c.x0), d: Math.max(col.x0 - c.x1, c.x0 - col.x1, 0) }))
+        .filter(o => o.i >= minCol);
+      if (!cands.length) { const last = out[out.length - 1]; if (last) { last.text += '  ' + c.text; last.x1 = c.x1; last.runs = null; } return; }
+      let pick, span = 1;
+      const spanned = cands.filter(o => o.ov > 0.3 * (bounds[o.i + 1] - bounds[o.i]));
+      if (few && spanned.length >= 2 && parseNumber(c.text) === null) { pick = cands.find(o => o.ov > 0) || spanned[0]; span = spanned[spanned.length - 1].i - pick.i + 1; }
+      else {
+        const ovs = cands.filter(o => o.cov > 0);
+        pick = ovs.length ? ovs.reduce((a, b) => b.cov > a.cov ? b : a) : cands.reduce((a, b) => b.d < a.d ? b : a);
+      }
+      out.push(Object.assign({}, c, { col: pick.i, span }));
+      minCol = pick.i + span;
+    });
+    return out;
+  };
+  let rows = lines.map(l => ({ yb: l.yb, h: l.h, x0: l.x0, x1: l.x1, top: Math.min(...l.cells.map(c => c.top)), bottom: Math.max(...l.cells.map(c => c.bottom)), cells: place(l) }));
+  // líneas de continuación (texto de una celda que ocupa dos renglones)
+  const merged2 = [];
+  rows.forEach(r => {
+    const p = merged2[merged2.length - 1];
+    if (p && p.cells.length >= 2 && r.cells.length < p.cells.length) {
+      const firstCol = p.cells[0].col;
+      const gap = r.yb - p.lastYb;
+      const fits = r.cells.every(c => p.cells.some(x => x.col === c.col));
+      if (gap < Math.max(p.h, r.h) * 1.5 && !r.cells.some(c => c.col === firstCol) && fits) {
+        r.cells.forEach(c => { const x = p.cells.find(y => y.col === c.col); x.text += '\n' + c.text; x.bottom = c.bottom; x.x1 = Math.max(x.x1, c.x1); x.runs = null; });
+        p.bottom = Math.max(p.bottom, r.bottom); p.lastYb = r.yb;
+        return;
+      }
+    }
+    r.lastYb = r.yb;
+    merged2.push(r);
+  });
+  return { cols, rows: merged2, bounds };
+}
+
+// Columnas con valores monetarios dentro de una cuadrícula del PDF
+function moneyColsGrid(g) {
+  return g.cols.map((_, ci) => {
+    const cells = [];
+    g.rows.forEach(r => { if (r.cells.length >= 2) { const c = r.cells.find(x => x.col === ci); if (c) cells.push(c.text); } });
+    const nums = cells.map(parseNumber).filter(v => v !== null);
+    const texts = cells.filter(t => parseNumber(t) === null);
+    if (texts.some(t => t.length < 40 && NO_MONEY.test(t))) return false;
+    if (nums.length < 2 || nums.length < cells.length * 0.5) return false;
+    if (nums.every(v => Number.isInteger(v) && v >= 1900 && v <= 2100)) return false;
+    return true;
+  });
+}
+
+// Formato Excel que reproduce cómo se escribió el número en el PDF
+function plainNumFmt(text) {
+  const t = String(text).replace(/[^\d.,]/g, '');
+  const dots = (t.match(/\./g) || []).length, commas = (t.match(/,/g) || []).length;
+  let decs = 0, grouped = false;
+  if (dots && commas) {
+    const dec = t.lastIndexOf('.') > t.lastIndexOf(',') ? '.' : ',';
+    decs = t.length - t.lastIndexOf(dec) - 1; grouped = true;
+  } else if (dots + commas === 1) {
+    const parts = t.split(dots ? '.' : ',');
+    if (parts[1].length === 3 && parts[0] !== '0') grouped = true; else decs = parts[1].length;
+  } else if (dots + commas > 1) grouped = true;
+  return (grouped ? '#,##0' : '0') + (decs ? '.' + '0'.repeat(decs) : '');
+}
+
+async function renderPage(pdf, p, scale) {
+  const page = await pdf.getPage(p);
+  const vp = page.getViewport({ scale });
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.ceil(vp.width); canvas.height = Math.ceil(vp.height);
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  await page.render({ canvasContext: ctx, viewport: vp }).promise;
+  return canvas;
+}
+
+async function readPptx(buf) {
+  const zip = await JSZip.loadAsync(buf);
+  const files = Object.keys(zip.files)
+    .map(f => { const m = f.match(/^ppt\/slides\/slide(\d+)\.xml$/); return m ? { f, n: +m[1] } : null; })
+    .filter(Boolean).sort((a, b) => a.n - b.n);
+  if (!files.length) throw new Error('No se encontraron diapositivas en el archivo.');
+  // orden real según presentation.xml
+  let order = null;
+  try {
+    const pres = new DOMParser().parseFromString(await zip.file('ppt/presentation.xml').async('string'), 'application/xml');
+    const rels = new DOMParser().parseFromString(await zip.file('ppt/_rels/presentation.xml.rels').async('string'), 'application/xml');
+    const map = {};
+    Array.from(rels.getElementsByTagName('Relationship')).forEach(r => { map[r.getAttribute('Id')] = r.getAttribute('Target'); });
+    order = Array.from(pres.getElementsByTagNameNS('*', 'sldId')).map(s => {
+      const rid = s.getAttribute('r:id') || s.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id');
+      const t = map[rid] || '';
+      return 'ppt/' + t.replace(/^\/?ppt\//, '').replace(/^\.\.\//, '');
+    }).filter(f => zip.file(f));
+  } catch (e) { order = null; }
+  const list = order && order.length ? order : files.map(x => x.f);
+  const sections = [];
+  for (let idx = 0; idx < list.length; idx++) {
+    const xml = new DOMParser().parseFromString(await zip.file(list[idx]).async('string'), 'application/xml');
+    const paraText = (p) => clean(Array.from(p.getElementsByTagNameNS('*', 't')).map(t => t.textContent).join(''));
+    let title = '';
+    const body = [];
+    Array.from(xml.getElementsByTagNameNS('*', 'sp')).forEach(sp => {
+      const ph = sp.getElementsByTagNameNS('*', 'ph')[0];
+      const type = ph ? (ph.getAttribute('type') || '') : '';
+      const txBody = sp.getElementsByTagNameNS('*', 'txBody')[0];
+      if (!txBody) return;
+      const paras = Array.from(txBody.getElementsByTagNameNS('*', 'p')).map(paraText).filter(Boolean);
+      if (!paras.length) return;
+      if (!title && (type === 'title' || type === 'ctrTitle')) title = paras.join(' ');
+      else if (type !== 'sldNum' && type !== 'dt' && type !== 'ftr') body.push(...paras);
+    });
+    const blocks = [];
+    if (body.length) blocks.push({ type: 'list', items: body });
+    Array.from(xml.getElementsByTagNameNS('*', 'tbl')).forEach(tbl => {
+      const rows = Array.from(tbl.getElementsByTagNameNS('*', 'tr')).map(tr =>
+        Array.from(tr.getElementsByTagNameNS('*', 'tc')).map(tc =>
+          clean(Array.from(tc.getElementsByTagNameNS('*', 'p')).map(paraText).join(' '))));
+      const nr = normalizeRows(rows);
+      if (nr.length) blocks.push({ type: 'table', rows: nr });
+    });
+    if (!title && body.length) { title = body[0]; blocks[0].items = body.slice(1); if (!blocks[0].items.length) blocks.shift(); }
+    sections.push({ title: title || 'Diapositiva ' + (idx + 1), blocks, num: idx + 1 });
+  }
+  return { kind: 'slides', sections };
+}
+
+const READERS = { doc: readDoc, docx: readDocx, xls: readSheet, xlsx: readSheet, pdf: readPdf, pptx: readPptx };
+
+/* ---------- Generadores ---------- */
+function toPDF(model, title) {
+  const { jsPDF } = window.jspdf;
+  const landscape = model.kind === 'sheets' || model.kind === 'slides';
+  const doc = new jsPDF({ orientation: landscape ? 'l' : 'p', unit: 'pt', format: 'a4' });
+  doc.setProperties({ title: title });
+  const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 48;
+  let y = M;
+  const ensure = (h) => { if (y + h > H - M) { doc.addPage(); y = M; } };
+  const write = (str, size, style, color, after) => {
+    doc.setFont('helvetica', style); doc.setFontSize(size); doc.setTextColor(color[0], color[1], color[2]);
+    const lines = doc.splitTextToSize(sanitizePdf(str), W - 2 * M);
+    const lh = size * 1.35;
+    lines.forEach(l => { ensure(lh); doc.text(l, M, y + size * 0.9); y += lh; });
+    y += after;
+  };
+  const AZUL = [27, 57, 107], TEXTO = [20, 28, 50];
+  const table = (raw) => {
+    const dt = displayTable(raw);
+    const rows = dt.rows;
+    const cols = rows[0].length;
+    const fs = cols > 14 ? 6 : cols > 9 ? 7 : 9;
+    const conv = (r) => r.map(sanitizePdf);
+    const columnStyles = {};
+    dt.money.forEach(i => { columnStyles[i] = { halign: 'right' }; });
+    doc.autoTable({
+      startY: y, head: [conv(rows[0])], body: rows.slice(1).map(conv), columnStyles,
+      margin: { left: M, right: M, top: M, bottom: M },
+      styles: { font: 'helvetica', fontSize: fs, cellPadding: 3, overflow: 'linebreak', textColor: TEXTO, lineColor: [213, 221, 235], lineWidth: 0.4 },
+      headStyles: { fillColor: AZUL, textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [240, 244, 250] }
+    });
+    y = doc.lastAutoTable.finalY + 16;
+  };
+  model.sections.forEach((sec, si) => {
+    if (si > 0 && (model.kind === 'sheets' || model.kind === 'slides' || model.kind === 'pdf')) { doc.addPage(); y = M; }
+    if (model.kind !== 'doc' && model.kind !== 'pdf' && sec.title) write(sec.title, landscape ? 22 : 18, 'bold', AZUL, 10);
+    if (!sec.blocks.length) write('(Sin contenido)', 10, 'italic', [120, 130, 150], 6);
+    sec.blocks.forEach(b => {
+      if (b.type === 'heading') { ensure(40); write(b.text, b.level <= 1 ? 17 : b.level === 2 ? 14 : 12, 'bold', AZUL, 6); }
+      else if (b.type === 'para') write(b.text, 10.5, 'normal', TEXTO, 6);
+      else if (b.type === 'list') b.items.forEach(it => write('-  ' + it, model.kind === 'slides' ? 13 : 10.5, 'normal', TEXTO, 4));
+      else if (b.type === 'table') table(b.rows);
+    });
+  });
+  // numeración de páginas
+  const total = doc.getNumberOfPages();
+  for (let p = 1; p <= total; p++) {
+    doc.setPage(p); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(140, 150, 170);
+    doc.text(p + ' / ' + total, W - M, H - 22, { align: 'right' });
+  }
+  return doc.output('blob');
+}
+
+let PDF_WORD_MODE = 'editable';
+
+async function pdfToLayoutDocx(model, title, onProgress) {
+  const D = window.docx;
+  const tw = (pt) => Math.max(0, Math.round(pt * 20));
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const mkRuns = (c, text, white) => {
+    const color = white ? 'FFFFFF' : undefined;
+    // fragmentos con estilos mezclados (etiqueta en negrita + valor normal)
+    if (c.runs && c.runs.length > 1 && text === c.text) return c.runs.map(r => new D.TextRun({ text: r.text, font: r.family, size: Math.max(10, Math.round(r.size * 2)), bold: r.bold, italic: r.italic, color }));
+    return String(text).split('\n').map((t, i) => new D.TextRun({ text: t, break: i ? 1 : undefined, font: c.family, size: Math.max(10, Math.round(c.size * 2)), bold: c.bold, italic: c.italic, color }));
+  };
+  const run = (c, text) => mkRuns(c, text)[0];
+  const sections = [];
+  const probe = document.createElement('canvas');
+  const canDraw = !!(probe.getContext && probe.getContext('2d'));
+  for (let pi = 0; pi < model.sections.length; pi++) {
+    const sec = model.sections[pi];
+    onProgress && model.sections.length > 1 && onProgress('Procesando página ' + (pi + 1) + ' de ' + model.sections.length + '…');
+    const L = sec.layout, lines = L.lines;
+    const left = lines.length ? clamp(Math.min(...lines.map(l => l.x0)) - 2, 14, 108) : 72;
+    const rightX = lines.length ? Math.max(...lines.map(l => l.x1)) : L.w - 72;
+    const right = clamp(L.w - rightX - 2, 14, 108);
+    const top = lines.length ? clamp(lines[0].yb - lines[0].h * 1.1, 14, 108) : 72;
+    const contentW = L.w - left - right;
+    const border = L.hasLines ? { style: D.BorderStyle.SINGLE, size: 4, color: '808080' } : { style: D.BorderStyle.NONE, size: 0, color: 'FFFFFF' };
+    const children = [];
+    let prevYb = null;
+    const spaceBefore = (l) => prevYb == null ? 0 : Math.max(0, (l.yb - prevYb) - l.h * 1.2);
+    let i = 0;
+    while (i < lines.length) {
+      // zona de tabla: 2 o más líneas seguidas con varias columnas
+      let j = i;
+      while (j < lines.length) {
+        if (lines[j].cells.length >= 2) { j++; continue; }
+        // renglón suelto dentro de la tabla (celda con texto en dos renglones)
+        const near = j > i && lines[j].yb - lines[j - 1].yb < lines[j].h * 1.6 && lines[j].x0 > lines[i].x0 + 10;
+        if (near && (j + 1 >= lines.length || lines[j + 1].cells.length >= 2 || lines[j + 1].yb - lines[j].yb < lines[j].h * 1.6)) { j++; continue; }
+        break;
+      }
+      const runMax = j > i ? Math.max(...lines.slice(i, j).map(l => l.cells.length)) : 0;
+      // las primeras líneas con pocas columnas (datos de encabezado) van como párrafo
+      if (j - i >= 2 && lines[i].cells.length <= runMax / 2) j = i;
+      const tl = j - i >= 2 ? lines.slice(i, j) : null;
+      const g = tl ? buildGrid(tl) : null;
+      if (g && g.cols.length >= 2) {
+        const money = moneyColsGrid(g);
+        const endX = Math.max(rightX, ...tl.map(l => l.x1));
+        const widths = g.cols.map((c, ci) => tw(g.bounds[ci + 1] - g.bounds[ci]));
+        const sum = widths.reduce((a, b) => a + b, 0), maxW = tw(contentW);
+        const ws = sum > maxW ? widths.map(w => Math.floor(w * maxW / sum)) : widths;
+        if (spaceBefore(tl[0]) > 2) children.push(new D.Paragraph({ spacing: { before: 0, after: 0, line: tw(spaceBefore(tl[0])), lineRule: D.LineRuleType.EXACT }, children: [] }));
+        children.push(new D.Table({
+          layout: D.TableLayoutType.FIXED,
+          columnWidths: ws,
+          width: { size: ws.reduce((a, b) => a + b, 0), type: D.WidthType.DXA },
+          borders: { top: border, bottom: border, left: border, right: border, insideHorizontal: border, insideVertical: border },
+          rows: g.rows.map(r => new D.TableRow({
+            children: g.cols.map((c, ci) => {
+              const yc = (r.top + r.bottom) / 2;
+              const bgF = (L.fills || []).filter(f => lum(f.color) < 0.97 && yc >= f.y0 && yc <= f.y1 && Math.min(f.x1, g.bounds[ci + 1]) - Math.max(f.x0, g.bounds[ci]) > 0.5 * (g.bounds[ci + 1] - g.bounds[ci]))
+                .sort((a, b) => (a.x1 - a.x0) * (a.y1 - a.y0) - (b.x1 - b.x0) * (b.y1 - b.y0))[0];
+              const cell = r.cells.find(x => x.col === ci);
+              let text = cell ? cell.text : '';
+              const n = cell ? parseNumber(text) : null;
+              if (cell && ACC_ON && money[ci] && n !== null) text = accText(n);
+              const centered = cell && n === null && cell.x0 - c.x0 > 6 && c.x1 - cell.x1 > 6 && Math.abs((cell.x0 - c.x0) - (c.x1 - cell.x1)) < 4;
+              const numRight = n !== null && ((ACC_ON && money[ci]) || !(Math.abs(cell.x0 - c.x0) < 3 && c.x1 - cell.x1 > 6));
+              return new D.TableCell({
+                width: { size: ws[ci], type: D.WidthType.DXA },
+                shading: bgF ? { fill: argb(bgF.color).slice(2), type: D.ShadingType.CLEAR, color: 'auto' } : undefined,
+                margins: { top: 10, bottom: 10, left: 40, right: 40 },
+                children: [new D.Paragraph({
+                  alignment: numRight ? D.AlignmentType.RIGHT : centered ? D.AlignmentType.CENTER : D.AlignmentType.LEFT,
+                  spacing: { before: 0, after: 0 },
+                  children: cell ? mkRuns(cell, text, bgF && lum(bgF.color) < 0.45) : []
+                })]
+              });
+            })
+          }))
+        }));
+        prevYb = tl[tl.length - 1].yb;
+        i = j;
+        continue;
+      }
+      // párrafo (une líneas seguidas del mismo estilo)
+      const l = lines[i];
+      const before = spaceBefore(l);
+      const c0 = l.cells[0];
+      const mid = (l.x0 + l.x1) / 2, pageMid = left + contentW / 2;
+      let align = D.AlignmentType.LEFT;
+      if (l.cells.length === 1 && Math.abs(mid - pageMid) < 8 && l.x0 - left > 24) align = D.AlignmentType.CENTER;
+      else if (l.cells.length === 1 && rightX - l.x1 < 4 && l.x0 - left > contentW * 0.4) align = D.AlignmentType.RIGHT;
+      const group = [l];
+      let k = i + 1;
+      if (align === D.AlignmentType.LEFT && l.cells.length === 1) {
+        while (k < lines.length) {
+          const n = lines[k], prev = group[group.length - 1];
+          const nc = n.cells[0];
+          if (n.cells.length !== 1 || Math.abs(n.h - prev.h) > 0.6 || nc.bold !== c0.bold || nc.italic !== c0.italic) break;
+          if (n.yb - prev.yb > prev.h * 1.65) break;
+          if (Math.abs(n.x0 - l.x0) > 3 && !(group.length === 1 && n.x0 < l.x0)) break;
+          if (rightX - prev.x1 > contentW * 0.25) break; // la línea anterior terminaba antes: fin de párrafo
+          group.push(n); k++;
+        }
+      }
+      const lineGap = group.length > 1 ? (group[group.length - 1].yb - group[0].yb) / (group.length - 1) : l.h * 1.2;
+      const indentLeft = align === D.AlignmentType.LEFT ? Math.max(0, (group.length > 1 ? group[1].x0 : l.x0) - left) : 0;
+      const firstLine = group.length > 1 ? l.x0 - group[1].x0 : 0;
+      let runs;
+      let tabStops;
+      if (l.cells.length >= 2) {
+        runs = [];
+        tabStops = l.cells.slice(1).map(c => ({ type: D.TabStopType.LEFT, position: tw(c.x0 - left - indentLeft) }));
+        l.cells.forEach((c, ci) => {
+          if (ci > 0) runs.push(new D.TextRun({ children: [new D.Tab()], font: c.family, size: Math.max(10, Math.round(c.size * 2)) }));
+          runs.push(...mkRuns(c, c.text));
+        });
+      } else {
+        const text = group.map(g => g.cells[0].text).reduce((acc, t) => acc ? (acc.endsWith('-') ? acc.slice(0, -1) + t : acc + ' ' + t) : t, '');
+        runs = mkRuns(c0, text);
+      }
+      children.push(new D.Paragraph({
+        alignment: align,
+        tabStops,
+        indent: { left: tw(indentLeft), firstLine: firstLine > 0 ? tw(firstLine) : undefined, hanging: firstLine < 0 ? tw(-firstLine) : undefined },
+        spacing: { before: tw(before), after: 0, line: tw(Math.max(lineGap, l.h * 1.05)), lineRule: D.LineRuleType.AT_LEAST },
+        children: runs
+      }));
+      prevYb = group[group.length - 1].yb;
+      i = k;
+    }
+    if (!children.length) children.push(new D.Paragraph({ children: [] }));
+    // imágenes (logotipos, firmas, sellos) en su misma posición
+    const imgs = L.images || [];
+    if (imgs.length && canDraw && model.pdf) {
+      try {
+        const SC = 2;
+        const canvas = await renderPage(model.pdf, pi + 1, SC);
+        const floats = [];
+        for (const m of imgs) {
+          const cw = Math.max(1, Math.round((m.x1 - m.x0) * SC)), ch = Math.max(1, Math.round((m.y1 - m.y0) * SC));
+          const cut = document.createElement('canvas'); cut.width = cw; cut.height = ch;
+          cut.getContext('2d').drawImage(canvas, Math.round(m.x0 * SC), Math.round(m.y0 * SC), cw, ch, 0, 0, cw, ch);
+          const blob = await new Promise(r => cut.toBlob(r, 'image/png'));
+          floats.push(new D.ImageRun({
+            data: new Uint8Array(await blob.arrayBuffer()),
+            transformation: { width: (m.x1 - m.x0) * 96 / 72, height: (m.y1 - m.y0) * 96 / 72 },
+            floating: {
+              horizontalPosition: { relative: D.HorizontalPositionRelativeFrom.PAGE, offset: Math.round(m.x0 * 12700) },
+              verticalPosition: { relative: D.VerticalPositionRelativeFrom.PAGE, offset: Math.round(m.y0 * 12700) },
+              wrap: { type: D.TextWrappingType.NONE }, allowOverlap: true
+            }
+          }));
+        }
+        children.unshift(new D.Paragraph({ spacing: { before: 0, after: 0, line: 20, lineRule: D.LineRuleType.EXACT }, children: floats }));
+      } catch (e) { /* imágenes omitidas */ }
+    }
+    const landscape = L.w > L.h;
+    sections.push({
+      properties: { page: {
+        size: landscape ? { width: tw(L.h), height: tw(L.w), orientation: D.PageOrientation.LANDSCAPE } : { width: tw(L.w), height: tw(L.h) },
+        margin: { top: tw(top), bottom: tw(18), left: tw(left), right: tw(right), header: 0, footer: 0 }
+      } },
+      children
+    });
+  }
+  const doc = new D.Document({ creator: 'La Ofrenda', title, sections });
+  return D.Packer.toBlob(doc);
+}
+
+async function pdfToImageDocx(model, title, onProgress) {
+  const D = window.docx;
+  const tw = (pt) => Math.round(pt * 20);
+  const sections = [];
+  for (let p = 1; p <= model.pdf.numPages; p++) {
+    onProgress && onProgress('Procesando página ' + p + ' de ' + model.pdf.numPages + '…');
+    const L = model.sections[p - 1].layout;
+    const canvas = await renderPage(model.pdf, p, 1.6);
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+    const data = new Uint8Array(await blob.arrayBuffer());
+    canvas.width = canvas.height = 0;
+    const landscape = L.w > L.h;
+    sections.push({
+      properties: { page: {
+        size: landscape ? { width: tw(L.h), height: tw(L.w), orientation: D.PageOrientation.LANDSCAPE } : { width: tw(L.w), height: tw(L.h) },
+        margin: { top: 0, bottom: 0, left: 0, right: 0, header: 0, footer: 0 }
+      } },
+      children: [new D.Paragraph({ spacing: { before: 0, after: 0 }, children: [new D.ImageRun({ data, transformation: { width: L.w * 96 / 72 * 0.995, height: L.h * 96 / 72 * 0.985 } })] })]
+    });
+  }
+  return D.Packer.toBlob(new D.Document({ creator: 'La Ofrenda', title, sections }));
+}
+
+const argb = (c) => 'FF' + c.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('').toUpperCase();
+const lum = (c) => (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]) / 255;
+
+// Fecha escrita en el PDF -> fecha real de Excel con el mismo formato
+function parseDateText(t) {
+  let m = String(t).trim().match(/^(\d{4})([\/\-.])(\d{1,2})\2(\d{1,2})$/);
+  let y, mo, d, fmt;
+  if (m) { y = +m[1]; mo = +m[3]; d = +m[4]; fmt = 'yyyy' + m[2] + 'mm' + m[2] + 'dd'; }
+  else {
+    m = String(t).trim().match(/^(\d{1,2})([\/\-.])(\d{1,2})\2(\d{4})$/);
+    if (!m) return null;
+    d = +m[1]; mo = +m[3]; y = +m[4]; fmt = 'dd' + m[2] + 'mm' + m[2] + 'yyyy';
+    if (mo > 12 && d <= 12) { const x = d; d = mo; mo = x; fmt = 'mm' + m[2] + 'dd' + m[2] + 'yyyy'; }
+  }
+  if (mo < 1 || mo > 12 || d < 1 || d > 31 || y < 1900 || y > 2200) return null;
+  return { serial: Date.UTC(y, mo - 1, d) / 86400000 + 25569, fmt: fmt.replace(/\./g, '\\.').replace(/-/g, '\\-') };
+}
+
+async function pdfToStyledXlsx(model, onProgress) {
+  const wbx = new ExcelJS.Workbook();
+  wbx.creator = 'La Ofrenda';
+  const used = new Set();
+  const sheetName = (n) => {
+    let s0 = String(n).replace(/[\[\]\*\?\/\\:]/g, ' ').slice(0, 31).trim() || 'Hoja', s1 = s0, k = 2;
+    while (used.has(s1.toLowerCase())) s1 = s0.slice(0, 27) + ' (' + k++ + ')';
+    used.add(s1.toLowerCase()); return s1;
+  };
+  const probe = document.createElement('canvas');
+  const canDraw = !!(probe.getContext && probe.getContext('2d'));
+  const SCALE = 2;
+  const total = model.sections.length;
+  for (let pi = 0; pi < total; pi++) {
+    const sec = model.sections[pi];
+    const L = sec.layout;
+    onProgress && total > 1 && onProgress('Procesando página ' + (pi + 1) + ' de ' + total + '…');
+    const ws = wbx.addWorksheet(sheetName(sec.title), {
+      pageSetup: { paperSize: 9, orientation: L.w > L.h ? 'landscape' : 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0,
+        margins: { left: 0.3, right: 0.3, top: 0.4, bottom: 0.4, header: 0.2, footer: 0.2 } }
+    });
+    if (!L.lines.length && !(L.images || []).length) { ws.getCell('A1').value = '(Página sin texto)'; continue; }
+    // imagen de la página para colores de texto y para recortar logotipos
+    let canvas = null, ctx = null;
+    if (canDraw && model.pdf) {
+      try { canvas = await renderPage(model.pdf, pi + 1, SCALE); ctx = canvas.getContext("2d"); } catch (e) { canvas = null; }
+    }
+    const g = buildGrid(L.lines);
+    const money = moneyColsGrid(g);
+    const ncols = g.cols.length, B = g.bounds;
+    for (let i = 0; i < ncols; i++) ws.getColumn(i + 1).width = Math.max(1.2, ((B[i + 1] - B[i]) * 4 / 3 - 5) / 7);
+
+    // filas de Excel con su posición vertical en el PDF
+    const xr = [];
+    const fills = (L.fills || []).filter(f => lum(f.color) < 0.97);
+    const imgs = (L.images || []);
+    const firstTop = g.rows.length ? g.rows[0].top : L.h;
+    const startY = Math.min(firstTop, ...imgs.map(m => m.y0), ...fills.map(f => f.y0));
+    if (startY < firstTop - 2) xr.push({ top: startY, height: firstTop - startY });
+    g.rows.forEach((r, i) => {
+      const next = g.rows[i + 1];
+      const content = r.bottom - r.top + 1.5;
+      const toNext = next ? next.top - r.top : content + 2;
+      if (toNext > content * 1.7 && toNext - content > 4) {
+        xr.push({ top: r.top, height: content, r });
+        xr.push({ top: r.top + content, height: toNext - content });
+      } else xr.push({ top: r.top, height: Math.max(toNext, content * 0.9), r });
+    });
+    const lastImg = Math.max(0, ...imgs.map(m => m.y1));
+    const end = xr.length ? xr[xr.length - 1].top + xr[xr.length - 1].height : 0;
+    if (lastImg > end + 2) xr.push({ top: end, height: lastImg - end });
+    const rowAt = (y) => { for (let i = 0; i < xr.length; i++) { if (y < xr[i].top + xr[i].height) return { i, f: Math.max(0, (y - xr[i].top) / xr[i].height) }; } return { i: xr.length - 1, f: 1 }; };
+    const colAt = (x) => { for (let i = 0; i < ncols; i++) { if (x < B[i + 1]) return { i, f: Math.max(0, (x - B[i]) / (B[i + 1] - B[i])) }; } return { i: ncols - 1, f: 1 }; };
+    const colOverlap = (i, a, b) => Math.max(0, Math.min(B[i + 1], b) - Math.max(B[i], a)) / (B[i + 1] - B[i]);
+
+    // color del texto tomado de la imagen de la página
+    const textColor = (c, bg) => {
+      if (!ctx) return null;
+      const x = Math.floor(c.x0 * SCALE), y = Math.floor(c.top * SCALE);
+      const w = Math.max(1, Math.ceil((c.x1 - c.x0) * SCALE)), h = Math.max(1, Math.ceil((c.bottom - c.top) * SCALE));
+      let data;
+      try { data = ctx.getImageData(x, y, w, h).data; } catch (e) { return null; }
+      const px = [];
+      for (let k = 0; k < data.length; k += 4) {
+        const d = Math.abs(data[k] - bg[0]) + Math.abs(data[k + 1] - bg[1]) + Math.abs(data[k + 2] - bg[2]);
+        if (d > 120) px.push([data[k], data[k + 1], data[k + 2], d]);
+      }
+      if (px.length < 4) return null;
+      px.sort((a, b) => b[3] - a[3]);
+      const top = px.slice(0, Math.max(3, Math.floor(px.length * 0.3)));
+      const avg = [0, 1, 2].map(j => top.reduce((sum, p) => sum + p[j], 0) / top.length);
+      if (Math.max(...avg) < 70) return null;
+      if (Math.min(...avg) > 225) return [255, 255, 255];
+      return avg;
+    };
+
+    xr.forEach((x, ri) => {
+      const row = ws.getRow(ri + 1);
+      row.height = Math.min(409, Math.max(3, x.height));
+      // rellenos de fondo (encabezados y franjas)
+      const yc = x.top + Math.min(x.height, x.r ? x.r.bottom - x.r.top : x.height) / 2;
+      const rowFills = fills.filter(f => yc >= f.y0 && yc <= f.y1).sort((a, b) => (a.x1 - a.x0) * (a.y1 - a.y0) - (b.x1 - b.x0) * (b.y1 - b.y0));
+      const colFill = [];
+      for (let i = 0; i < ncols; i++) {
+        const f = rowFills.find(ff => colOverlap(i, ff.x0, ff.x1) > 0.5);
+        if (f) { colFill[i] = f.color; row.getCell(i + 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: argb(f.color) } }; }
+      }
+      if (!x.r) return;
+      const table = x.r.cells.length >= 2;
+      x.r.cells.forEach(c => {
+        const cell = row.getCell(c.col + 1);
+        const bg = colFill[c.col] || [255, 255, 255];
+        let color = textColor(c, bg);
+        if (!color && colFill[c.col] && lum(colFill[c.col]) < 0.45) color = [255, 255, 255];
+        const font = { name: c.family, size: Math.max(6, Math.round(c.size * 2) / 2), bold: c.bold, italic: c.italic };
+        if (color) font.color = { argb: argb(color) };
+        cell.font = font;
+        const n = c.text.indexOf('\n') < 0 ? parseNumber(c.text) : null;
+        const dt = table && n === null ? parseDateText(c.text) : null;
+        const lead0 = /^0\d/.test(c.text.trim());
+        if (dt) {
+          cell.value = dt.serial; cell.numFmt = dt.fmt;
+          cell.alignment = { vertical: 'top', horizontal: 'left' };
+        } else if (n !== null && table && !lead0) {
+          cell.value = n;
+          cell.numFmt = (ACC_ON && money[c.col]) ? ACC_FMT : plainNumFmt(c.text);
+          const gc = g.cols[c.col];
+          const isLeft = Math.abs(c.x0 - gc.x0) < 3 && gc.x1 - c.x1 > 6;
+          cell.alignment = { vertical: 'top', horizontal: (ACC_ON && money[c.col]) || !isLeft ? 'right' : 'left' };
+        } else {
+          if (c.runs && c.runs.length > 1) {
+            cell.value = { richText: c.runs.map(r => ({ text: r.text, font: Object.assign({}, font, { bold: r.bold, italic: r.italic, size: Math.max(6, Math.round(r.size * 2) / 2), name: r.family }) })) };
+          } else cell.value = c.text;
+          const gs = g.cols[c.col], ge = g.cols[c.col + c.span - 1];
+          const right = c.x0 - gs.x0 > 8 && Math.abs(ge.x1 - c.x1) < 3;
+          const center = !right && c.x0 - gs.x0 > 6 && ge.x1 - c.x1 > 6 && Math.abs((c.x0 - gs.x0) - (ge.x1 - c.x1)) < 4;
+          cell.alignment = { vertical: 'top', horizontal: right ? 'right' : center ? 'center' : 'left', wrapText: c.text.indexOf('\n') >= 0 };
+        }
+        if (c.span > 1) {
+          let free = true;
+          for (let k = c.col + 1; k < c.col + c.span; k++) if (x.r.cells.some(o => o.col === k)) free = false;
+          if (free) { try { ws.mergeCells(ri + 1, c.col + 1, ri + 1, c.col + c.span); } catch (e) { /* ya combinada */ } }
+        }
+      });
+    });
+
+    // bordes a partir de las líneas del PDF
+    const setBorder = (r, cIdx, side, col) => {
+      const cell = ws.getRow(r + 1).getCell(cIdx + 1);
+      const b = Object.assign({}, cell.border || {});
+      b[side] = { style: 'thin', color: { argb: argb(col) } };
+      cell.border = b;
+    };
+    (L.rules || []).forEach(ln => {
+      if (lum(ln.color) > 0.92) return;
+      const horiz = (ln.x1 - ln.x0) >= (ln.y1 - ln.y0);
+      if (horiz) {
+        const y = (ln.y0 + ln.y1) / 2;
+        if (ln.x1 - ln.x0 < 6) return;
+        const { i, f } = rowAt(y);
+        if (i < 0 || y < xr[0].top - 3 || y > xr[xr.length - 1].top + xr[xr.length - 1].height + 3) return;
+        for (let c = 0; c < ncols; c++) if (colOverlap(c, ln.x0, ln.x1) > 0.5) setBorder(i, c, f < 0.5 ? 'top' : 'bottom', ln.color);
+      } else {
+        const x = (ln.x0 + ln.x1) / 2;
+        if (ln.y1 - ln.y0 < 4) return;
+        const { i: c, f } = colAt(x);
+        xr.forEach((row, r) => {
+          const yc = row.top + row.height / 2;
+          if (yc >= ln.y0 && yc <= ln.y1) setBorder(r, c, f < 0.5 ? 'left' : 'right', ln.color);
+        });
+      }
+    });
+
+    // imágenes (logotipos, firmas, sellos)
+    if (canvas) {
+      for (const m of imgs) {
+        try {
+          const cw = Math.max(1, Math.round((m.x1 - m.x0) * SCALE)), ch = Math.max(1, Math.round((m.y1 - m.y0) * SCALE));
+          const cut = document.createElement('canvas'); cut.width = cw; cut.height = ch;
+          cut.getContext('2d').drawImage(canvas, Math.round(m.x0 * SCALE), Math.round(m.y0 * SCALE), cw, ch, 0, 0, cw, ch);
+          const blob = await new Promise(r => cut.toBlob(r, 'image/png'));
+          const id = wbx.addImage({ buffer: await blob.arrayBuffer(), extension: 'png' });
+          const tl = colAt(m.x0), rt = rowAt(m.y0);
+          ws.addImage(id, { tl: { col: tl.i + tl.f, row: rt.i + rt.f }, ext: { width: (m.x1 - m.x0) * 96 / 72, height: (m.y1 - m.y0) * 96 / 72 }, editAs: 'oneCell' });
+        } catch (e) { /* imagen omitida */ }
+      }
+      canvas.width = canvas.height = 0;
+    }
+  }
+  const buf = await wbx.xlsx.writeBuffer();
+  return new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+async function toDOCX(model, title, onProgress) {
+  if (model.kind === 'pdf') {
+    return PDF_WORD_MODE === 'exacta' ? pdfToImageDocx(model, title, onProgress) : pdfToLayoutDocx(model, title, onProgress);
+  }
+  const D = window.docx;
+  const HL = [D.HeadingLevel.HEADING_1, D.HeadingLevel.HEADING_2, D.HeadingLevel.HEADING_3, D.HeadingLevel.HEADING_4];
+  const children = [];
+  const shift = model.kind === 'doc' ? 0 : 1;
+  const mkTable = (raw) => {
+    const dt = displayTable(raw);
+    const rows = dt.rows;
+    const cols = rows[0].length;
+    const size = cols > 10 ? 14 : cols > 6 ? 16 : 18;
+    return new D.Table({
+      width: { size: 100, type: D.WidthType.PERCENTAGE },
+      rows: rows.map((r, ri) => new D.TableRow({
+        tableHeader: ri === 0,
+        children: r.map((c, ci) => new D.TableCell({
+          shading: ri === 0 ? { fill: '1B396B', type: D.ShadingType.CLEAR, color: 'auto' } : undefined,
+          children: [new D.Paragraph({ alignment: ri > 0 && dt.money.includes(ci) ? D.AlignmentType.RIGHT : undefined, children: [new D.TextRun({ text: String(c), bold: ri === 0, size, color: ri === 0 ? 'FFFFFF' : '001E77' })] })]
+        }))
+      }))
+    });
+  };
+  model.sections.forEach((sec, si) => {
+    if (model.kind !== 'doc' && sec.title) {
+      children.push(new D.Paragraph({ text: sec.title, heading: HL[0], pageBreakBefore: si > 0 && model.kind !== 'pdf' }));
+    }
+    sec.blocks.forEach(b => {
+      if (b.type === 'heading') children.push(new D.Paragraph({ text: b.text, heading: HL[Math.min(b.level - 1 + shift, 3)] }));
+      else if (b.type === 'para') children.push(new D.Paragraph({ children: [new D.TextRun(b.text)], spacing: { after: 120 } }));
+      else if (b.type === 'list') b.items.forEach(it => children.push(new D.Paragraph({ text: it, bullet: { level: 0 } })));
+      else if (b.type === 'table') { children.push(mkTable(b.rows)); children.push(new D.Paragraph({ text: '' })); }
+    });
+  });
+  if (!children.length) children.push(new D.Paragraph({ text: '(Sin contenido)' }));
+  const wide = model.kind === 'sheets' && model.sections.some(s => s.blocks[0] && s.blocks[0].rows && s.blocks[0].rows[0].length > 6);
+  const doc = new D.Document({
+    creator: 'La Ofrenda', title: title,
+    styles: { default: { document: { run: { font: 'Calibri', size: 22 } } } },
+    sections: [{
+      properties: wide ? { page: { size: { orientation: D.PageOrientation.LANDSCAPE } } } : {},
+      children
+    }]
+  });
+  return D.Packer.toBlob(doc);
+}
+
+function toXLSX(model, onProgress) {
+  if (model.kind === 'pdf') return pdfToStyledXlsx(model, onProgress);
+  let wb;
+  if (model.kind === 'sheets' && model.buf) {
+    // se relee el original para no alterar el modelo
+    wb = XLSX.read(new Uint8Array(model.buf), { type: 'array', cellDates: true, cellNF: true });
+    if (ACC_ON) wb.SheetNames.forEach(n => applyAccounting(wb.Sheets[n]));
+  } else {
+    wb = XLSX.utils.book_new();
+    const used = new Set();
+    const add = (name, rows, isTable) => {
+      let n = String(name).replace(/[\[\]\*\?\/\\:]/g, ' ').slice(0, 31).trim() || 'Hoja';
+      let k = 2, base = n;
+      while (used.has(n.toLowerCase())) { n = (base.slice(0, 27) + ' (' + k++ + ')'); }
+      used.add(n.toLowerCase());
+      const ws = XLSX.utils.aoa_to_sheet(rows.length ? rows : [['(Sin contenido)']]);
+      const cols = Math.max(1, ...rows.map(r => r.length));
+      ws['!cols'] = Array.from({ length: cols }, (_, c) => ({ wch: Math.min(60, Math.max(10, ...rows.map(r => cellStr(r[c]).length))) }));
+      if (isTable && ACC_ON) applyAccounting(ws);
+      XLSX.utils.book_append_sheet(wb, ws, n);
+    };
+    if (model.kind === 'pdf') {
+      if (model.sections.length <= 50) model.sections.forEach(s => add(s.title, s.rows, true));
+      else {
+        const all = [];
+        model.sections.forEach((s, i) => s.rows.forEach(r => all.push([i + 1, ...r])));
+        add('PDF', [['Página'], ...all], true);
+      }
+    } else if (model.kind === 'slides') {
+      const rows = [['Diapositiva', 'Título', 'Contenido']];
+      const tables = [];
+      model.sections.forEach((s, i) => {
+        const txt = [];
+        s.blocks.forEach(b => {
+          if (b.type === 'list') txt.push(...b.items);
+          else if (b.type === 'para') txt.push(b.text);
+          else if (b.type === 'table') tables.push({ name: 'Tabla D' + (i + 1), rows: b.rows });
+        });
+        rows.push([i + 1, s.title, txt.join('\n')]);
+      });
+      add('Diapositivas', rows);
+      tables.forEach(t => add(t.name, t.rows, true));
+    } else {
+      const rows = [['Tipo', 'Contenido']];
+      const tables = [];
+      model.sections.forEach(s => s.blocks.forEach(b => {
+        if (b.type === 'heading') rows.push(['Título', b.text]);
+        else if (b.type === 'para') rows.push(['Párrafo', b.text]);
+        else if (b.type === 'list') b.items.forEach(it => rows.push(['Viñeta', it]));
+        else if (b.type === 'table') { tables.push(b.rows); rows.push(['Tabla', 'Ver hoja Tabla ' + tables.length]); }
+      }));
+      if (rows.length > 1) add('Texto', rows);
+      tables.forEach((t, i) => add('Tabla ' + (i + 1), t, true));
+      if (!wb.SheetNames.length) add('Texto', []);
+    }
+  }
+  const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array', compression: true });
+  return new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+async function toPPTX(model, title, onProgress) {
+  const pptx = new PptxGenJS();
+  pptx.title = title; pptx.company = 'La Ofrenda';
+  const AZUL = '1B396B', MAG = 'FF008F', TXT = '1F2A44';
+
+  if (model.kind === 'pdf') {
+    const first = await model.pdf.getPage(1);
+    const vp0 = first.getViewport({ scale: 1 });
+    const w = 10, h = +(10 * vp0.height / vp0.width).toFixed(3);
+    pptx.defineLayout({ name: 'PDF', width: w, height: h });
+    pptx.layout = 'PDF';
+    for (let p = 1; p <= model.pdf.numPages; p++) {
+      onProgress && onProgress('Procesando página ' + p + ' de ' + model.pdf.numPages + '…');
+      const canvas = await renderPage(model.pdf, p, 2);
+      const s = pptx.addSlide();
+      s.addImage({ data: canvas.toDataURL('image/jpeg', 0.88), x: 0, y: 0, w, h });
+      canvas.width = canvas.height = 0;
+    }
+    return pptx.write({ outputType: 'blob' });
+  }
+
+  pptx.layout = 'LAYOUT_WIDE';
+  const W = 13.333;
+  let nSlides = 0;
+  const newSlide = (t) => {
+    nSlides++;
+    const s = pptx.addSlide();
+    s.background = { color: 'FFFFFF' };
+    s.addText(t || ' ', { x: 0.6, y: 0.35, w: W - 1.2, h: 0.85, fontFace: 'Calibri', fontSize: 26, bold: true, color: AZUL, valign: 'middle', fit: 'shrink' });
+    s.addShape(pptx.ShapeType.rect, { x: 0.6, y: 1.22, w: 1.2, h: 0.06, fill: { color: MAG }, line: { color: MAG } });
+    return s;
+  };
+  const bulletSlide = (t, items) => {
+    const s = newSlide(t);
+    s.addText(items.map(it => ({ text: it, options: { bullet: true, breakLine: true } })),
+      { x: 0.6, y: 1.5, w: W - 1.2, h: 5.6, fontFace: 'Calibri', fontSize: 18, color: TXT, valign: 'top', paraSpaceAfter: 8, fit: 'shrink' });
+  };
+  const tableSlides = (t, raw) => {
+    const dt = displayTable(raw);
+    const rows = dt.rows;
+    const head = rows[0], body = rows.slice(1);
+    const cols = head.length;
+    const per = cols > 10 ? 16 : 12;
+    const fs = cols > 12 ? 8 : cols > 8 ? 9 : 11;
+    const chunks = body.length ? [] : [[]];
+    for (let i = 0; i < body.length; i += per) chunks.push(body.slice(i, i + per));
+    chunks.forEach((ch, ci) => {
+      const s = newSlide(t + (chunks.length > 1 ? ' (' + (ci + 1) + '/' + chunks.length + ')' : ''));
+      const data = [head, ...ch].map((r, ri) => r.map((c, ci) => ({
+        text: String(c), options: ri === 0 ? { bold: true, color: 'FFFFFF', fill: { color: AZUL } } : { color: TXT, align: dt.money.includes(ci) ? 'right' : 'left' }
+      })));
+      s.addTable(data, { x: 0.6, y: 1.5, w: W - 1.2, fontFace: 'Calibri', fontSize: fs, border: { type: 'solid', pt: 0.5, color: 'C9D2E3' }, autoPage: false, valign: 'middle' });
+    });
+  };
+
+  if (model.kind === 'sheets') {
+    model.sections.forEach(sec => {
+      const t = sec.blocks[0];
+      if (t && t.rows.length) tableSlides(sec.title, t.rows);
+      else bulletSlide(sec.title, ['(Hoja sin datos)']);
+    });
+  } else if (model.kind === 'slides') {
+    model.sections.forEach(sec => {
+      const items = [];
+      sec.blocks.forEach(b => { if (b.type === 'list') items.push(...b.items); });
+      bulletSlide(sec.title, items.length ? items : [' ']);
+      sec.blocks.filter(b => b.type === 'table').forEach(b => tableSlides(sec.title, b.rows));
+    });
+  } else {
+    // documento: cada título de nivel 1-2 abre diapositiva
+    let curTitle = title, items = [], chars = 0, cont = false;
+    const flush = () => {
+      if (items.length) { bulletSlide(curTitle + (cont ? ' (cont.)' : ''), items); cont = true; }
+      items = []; chars = 0;
+    };
+    model.sections.forEach(sec => sec.blocks.forEach(b => {
+      if (b.type === 'heading' && b.level <= 2) { flush(); curTitle = b.text; cont = false; }
+      else if (b.type === 'table') { flush(); tableSlides(curTitle, b.rows); cont = true; }
+      else {
+        const add = b.type === 'list' ? b.items : [b.text];
+        add.forEach(t => {
+          if (items.length >= 7 || chars + t.length > 700) flush();
+          items.push(t.length > 700 ? t.slice(0, 697) + '…' : t); chars += t.length;
+        });
+      }
+    }));
+    flush();
+    if (!nSlides) bulletSlide(title, ['(Sin contenido)']);
+  }
+  return pptx.write({ outputType: 'blob' });
+}
+
+/* ---------- Descarga ---------- */
+const downloadsP = (window.claude && typeof window.claude.use === 'function')
+  ? window.claude.use('downloads').catch(() => null)
+  : Promise.resolve(null);
+
+async function saveFile(filename, blob) {
+  const dl = await downloadsP;
+  if (dl) {
+    try {
+      await dl.save({ filename, data: blob });
+      return 'saved';
+    } catch (e) {
+      if (e && e.code === 'declined') return 'declined';
+      if (e && e.code === 'rate_limited') throw new Error('Ya hay una descarga pendiente de confirmar. Espera un momento y vuelve a intentarlo.');
+      if (e && (e.code === 'unavailable' || e.code === 'not_granted' || e.code === 'capability_disabled')) {
+        throw new Error('Las descargas no están disponibles en esta vista. Abre la herramienta en claude.ai.');
+      }
+      throw new Error((e && e.message) || 'No se pudo guardar el archivo.');
+    }
+  }
+  // fuera del visor de Claude: descarga directa del navegador
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 2000);
+  return 'saved';
+}
+
+/* ---------- Interfaz ---------- */
+// Los archivos solo viven en esta variable (memoria de la página). Nada se persiste.
+let files = [];
+let busy = false;
+let seq = 0;
+
+const GENERIC = {
+  pdf: 'Texto, tablas y hojas en un PDF listo para imprimir.',
+  docx: 'Contenido editable en Word: títulos, párrafos y tablas.',
+  xlsx: 'Tablas y hojas en Excel, con los valores como números.',
+  pptx: 'Contenido en diapositivas; los PDF como imágenes exactas.'
+};
+
+function summary(model) {
+  const s = model.sections;
+  if (model.kind === 'sheets') {
+    const filas = s.reduce((n, x) => n + (x.blocks[0] ? x.blocks[0].rows.length : 0), 0);
+    return s.length + (s.length === 1 ? ' hoja' : ' hojas') + ' · ' + filas.toLocaleString('es-CO') + ' filas';
+  }
+  if (model.kind === 'slides') return s.length + (s.length === 1 ? ' diapositiva' : ' diapositivas');
+  if (model.kind === 'pdf') return s.length + (s.length === 1 ? ' página' : ' páginas') + (model.hasText ? '' : ' · sin texto (escaneado)');
+  const blocks = s[0].blocks;
+  const tablas = blocks.filter(b => b.type === 'table').length;
+  const pars = blocks.filter(b => b.type !== 'table').length;
+  return pars + ' bloques de texto' + (tablas ? ' · ' + tablas + (tablas === 1 ? ' tabla' : ' tablas') : '');
+}
+
+function renderPreview(model, body) {
+  body.innerHTML = '';
+  let count = 0;
+  const LIMIT = 40;
+  const addEl = (tag, text) => { const el = document.createElement(tag); el.textContent = text; body.appendChild(el); count++; };
+  for (const sec of model.sections) {
+    if (count > LIMIT) break;
+    if (sec.title) addEl('h4', sec.title);
+    for (const b of sec.blocks) {
+      if (count > LIMIT) break;
+      if (b.type === 'heading') addEl('h4', b.text);
+      else if (b.type === 'para') addEl('p', b.text);
+      else if (b.type === 'list') b.items.slice(0, 10).forEach(it => addEl('p', '• ' + it));
+      else if (b.type === 'table') {
+        const wrap = document.createElement('div'); wrap.style.overflowX = 'auto';
+        const t = document.createElement('table'); t.className = 'mx'; t.style.minWidth = '0'; t.style.fontSize = '12px';
+        const dt = displayTable(b.rows.slice(0, 8));
+        dt.rows.forEach((r, ri) => {
+          const tr = document.createElement('tr');
+          r.slice(0, 10).forEach((c, ci) => { const td = document.createElement(ri === 0 ? 'th' : 'td'); td.textContent = c; td.style.textAlign = ri > 0 && dt.money.includes(ci) ? 'right' : 'left'; td.style.whiteSpace = 'nowrap'; tr.appendChild(td); });
+          t.appendChild(tr);
+        });
+        wrap.appendChild(t); body.appendChild(wrap); count += 4;
+        if (b.rows.length > 8) addEl('p', '… y ' + (b.rows.length - 8) + ' filas más');
+      }
+    }
+  }
+  if (!body.childNodes.length) addEl('p', 'No se detectó texto en el archivo.');
+  else if (count > LIMIT) addEl('p', '… (vista previa recortada)');
+}
+
+function canConvert(f, out) {
+  if (f.status !== 'ready' || !TARGETS[f.ext].includes(out)) return false;
+  if (f.model.kind === 'pdf' && !f.model.hasText && out !== 'pptx') return false;
+  return true;
+}
+
+function renderList() {
+  const ul = $('lista');
+  ul.innerHTML = '';
+  $('panel').classList.toggle('on', files.length > 0);
+  const n = files.length;
+  $('cuenta').textContent = n === 1 ? '1 archivo cargado' : n + ' archivos cargados';
+  files.forEach(f => {
+    const li = document.createElement('li');
+    li.className = 'file' + (f.status === 'error' ? ' err' : '');
+    const chip = document.createElement('span');
+    chip.className = 'chip ' + (FORMATS[f.ext] ? famClass(f.ext) : 'f-word');
+    chip.textContent = FORMATS[f.ext] ? FORMATS[f.ext].label : (f.ext.toUpperCase() || '?');
+    const meta = document.createElement('div'); meta.className = 'meta';
+    const nom = document.createElement('div'); nom.className = 'nombre'; nom.textContent = f.file.name;
+    const info = document.createElement('div'); info.className = 'info';
+    const base = (FORMATS[f.ext] ? FORMATS[f.ext].name + ' · ' : '') + fmtSize(f.file.size);
+    info.textContent = f.status === 'reading' ? base + ' · leyendo…'
+      : f.status === 'error' ? '⚠ ' + f.error
+      : base + ' · ' + summary(f.model);
+    meta.appendChild(nom); meta.appendChild(info);
+    if (f.status === 'ready') {
+      const det = document.createElement('details');
+      const sum = document.createElement('summary'); sum.textContent = 'Ver contenido detectado';
+      const body = document.createElement('div'); body.className = 'body';
+      det.appendChild(sum); det.appendChild(body);
+      det.addEventListener('toggle', () => { if (det.open) renderPreview(f.model, body); else body.innerHTML = ''; });
+      meta.appendChild(det);
+    }
+    const q = document.createElement('button');
+    q.type = 'button'; q.className = 'btn-sec quitar'; q.textContent = 'Quitar';
+    q.setAttribute('aria-label', 'Quitar ' + f.file.name);
+    q.disabled = busy;
+    q.addEventListener('click', () => removeFile(f.id));
+    li.appendChild(chip); li.appendChild(meta); li.appendChild(q);
+    ul.appendChild(li);
+  });
+  renderMatrix(files.filter(f => FORMATS[f.ext]).map(f => f.ext));
+  $('optPdfWrap').hidden = !files.some(f => f.ext === 'pdf');
+  renderTargets();
+}
+
+function renderTargets() {
+  const box = $('targets');
+  box.innerHTML = '';
+  const ready = files.filter(f => f.status === 'ready');
+  const reading = files.some(f => f.status === 'reading');
+  OUTPUTS.forEach(out => {
+    const ok = ready.filter(f => canConvert(f, out));
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'target'; b.dataset.out = out;
+    let nota;
+    if (ready.length === 1 && ok.length === 1) nota = (ready[0].ext === 'pdf' && out === 'docx' && PDF_WORD_MODE === 'exacta') ? 'Cada página como imagen: queda idéntica al PDF, pero no editable.' : NOTES[ready[0].ext + '>' + out];
+    else if (ready.length === 1) nota = ready[0].ext === out ? 'El archivo ya está en este formato.' : 'Este archivo no tiene texto para convertir a este formato.';
+    else if (!ok.length) nota = 'Ninguno de los archivos cargados se puede convertir a este formato.';
+    else nota = (ok.length === ready.length ? 'Se convertirán los ' + ok.length + ' archivos. ' : 'Se convertirán ' + ok.length + ' de ' + ready.length + ' archivos. ') + GENERIC[out];
+    const ext = ok.length > 1 ? 'zip' : out;
+    b.innerHTML =
+      '<span class="ruta"><span class="chip out">' + out.toUpperCase() + '</span></span>' +
+      '<span class="que">Convertir a ' + OUT_NAMES[out] + '</span>' +
+      '<span class="nota"></span>' +
+      '<span class="accion">' + (ok.length ? 'Descargar .' + ext : 'No disponible') + '</span>';
+    b.querySelector('.nota').textContent = nota;
+    b.disabled = busy || reading || !ok.length;
+    if (!ok.length) { b.style.cursor = 'not-allowed'; b.querySelector('.accion').style.background = '#B3B3B3'; }
+    b.addEventListener('click', () => convertAll(out, b));
+    box.appendChild(b);
+  });
+}
+
+function setBusy(on, btn) {
+  busy = on;
+  renderTargets();
+  if (on && btn) {
+    const nb = document.querySelector('.target[data-out="' + btn.dataset.out + '"]');
+    if (nb) nb.classList.add('busy');
+  }
+  document.querySelectorAll('.quitar, #limpiar, #agregar').forEach(x => { x.disabled = on; });
+}
+
+function build(f, out, onProgress) {
+  const name = baseName(f.file.name);
+  if (out === 'pdf') return Promise.resolve(toPDF(f.model, name));
+  if (out === 'docx') return toDOCX(f.model, name, onProgress);
+  if (out === 'xlsx') return Promise.resolve(toXLSX(f.model, onProgress));
+  return toPPTX(f.model, name, onProgress);
+}
+
+async function convertAll(out, btn) {
+  if (busy) return;
+  const ready = files.filter(f => f.status === 'ready');
+  const items = ready.filter(f => canConvert(f, out));
+  if (!items.length) return;
+  setBusy(true, btn);
+  let results = [];
+  const errores = [];
+  try {
+    for (let i = 0; i < items.length; i++) {
+      const f = items[i];
+      const pre = items.length > 1 ? 'Convirtiendo ' + (i + 1) + ' de ' + items.length + ': ' + f.file.name : 'Convirtiendo ' + f.file.name + ' a ' + OUT_NAMES[out];
+      showAlert('info', pre + '…');
+      await new Promise(r => setTimeout(r, 30));
+      try {
+        const blob = await build(f, out, (m) => showAlert('info', pre + ' · ' + m));
+        results.push({ name: baseName(f.file.name) + '.' + out, blob });
+      } catch (e) {
+        console.error(e);
+        errores.push(f.file.name);
+      }
+    }
+    if (!results.length) throw new Error('No se pudo convertir ' + (items.length === 1 ? 'el archivo.' : 'ninguno de los archivos.'));
+    let filename, data;
+    if (results.length === 1) {
+      filename = results[0].name; data = results[0].blob;
+    } else {
+      showAlert('info', 'Empaquetando ' + results.length + ' archivos…');
+      const zip = new JSZip();
+      const used = {};
+      results.forEach(r => {
+        let n = r.name;
+        if (used[n.toLowerCase()]) { const k = ++used[n.toLowerCase()]; n = n.replace(/(\.[^.]+)$/, ' (' + k + ')$1'); }
+        else used[n.toLowerCase()] = 1;
+        zip.file(n, r.blob);
+      });
+      data = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+      filename = 'documentos-convertidos-' + out + '.zip';
+    }
+    showAlert('info', 'Listo (' + fmtSize(data.size) + '). Confirma la descarga…');
+    const res = await saveFile(filename, data);
+    data = null; results = [];
+    const omitidos = ready.length - items.length;
+    let msg;
+    if (res === 'declined') msg = 'Descarga cancelada. Puedes volver a intentarlo cuando quieras.';
+    else msg = '✓ ' + filename + ' descargado.';
+    if (errores.length) msg += ' No se pudieron convertir: ' + errores.join(', ') + '.';
+    if (omitidos > 0) msg += ' ' + omitidos + (omitidos === 1 ? ' archivo ya estaba' : ' archivos ya estaban') + ' en ese formato o no tenía texto, y no se incluyó.';
+    showAlert(res === 'declined' ? 'info' : (errores.length ? 'err' : 'ok'), msg);
+  } catch (e) {
+    console.error(e);
+    showAlert('err', '⚠ ' + ((e && e.message) || 'No se pudo convertir.'));
+  } finally {
+    results = [];
+    setBusy(false);
+  }
+}
+
+function releaseFile(f) {
+  try { if (f.model && f.model.pdf) f.model.pdf.destroy(); } catch (e) { /* nada */ }
+  f.model = null; f.file = null;
+}
+
+function removeFile(id) {
+  if (busy) return;
+  const f = files.find(x => x.id === id);
+  files = files.filter(x => x.id !== id);
+  if (f) releaseFile(f);
+  hideAlert();
+  renderList();
+}
+
+function clearAll() {
+  files.forEach(releaseFile);
+  files = [];
+  $('file').value = '';
+  hideAlert();
+  renderList();
+}
+
+async function addFiles(list) {
+  const nuevos = Array.from(list || []).map(file => {
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    const f = { id: ++seq, file, ext, model: null, status: 'reading', error: '' };
+    if (!FORMATS[ext]) { f.status = 'error'; f.error = 'Formato no admitido. Usa DOC, DOCX, XLS, XLSX, PDF o PPTX.'; }
+    return f;
+  });
+  if (!nuevos.length) return;
+  files = files.concat(nuevos);
+  hideAlert();
+  renderList();
+  for (const f of nuevos) {
+    if (f.status !== 'reading') continue;
+    try {
+      const buf = await f.file.arrayBuffer();
+      const model = await READERS[f.ext](buf);
+      if (!files.includes(f)) { if (model.pdf) model.pdf.destroy(); continue; }
+      f.model = model; f.status = 'ready';
+    } catch (e) {
+      console.error(e);
+      f.status = 'error';
+      f.error = (e && e.name === 'PasswordException') ? 'El PDF está protegido con contraseña.' : ((e && e.message) || 'No se pudo leer el archivo.');
+    }
+    renderList();
+  }
+}
+
+const input = $('file'), drop = $('drop');
+input.addEventListener('change', () => { const l = Array.from(input.files); input.value = ''; addFiles(l); });
+drop.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); } });
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', (e) => { if (!busy) addFiles(e.dataTransfer.files); });
+$('agregar').addEventListener('click', () => input.click());
+$('limpiar').addEventListener('click', clearAll);
+$('optAcc').addEventListener('change', (e) => { ACC_ON = e.target.checked; document.querySelectorAll('.file details[open]').forEach(d => { d.open = false; }); });
+$('optPdfWord').addEventListener('change', (e) => { PDF_WORD_MODE = e.target.value; renderTargets(); });
+// al salir de la página se libera todo lo cargado
+window.addEventListener('pagehide', () => { files.forEach(releaseFile); files = []; });
+
+})();
+</script>
+</body>
+</html>
