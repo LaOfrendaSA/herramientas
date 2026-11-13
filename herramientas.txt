@@ -38,6 +38,6 @@ Conversor de PDF | Documentos | Convierte archivos a PDF y documentos PDF a otro
 Compresor PDF | Documentos | Reduce el tamaño de un PDF en diferentes tipos de compresión, cuida Firma Digital. | https://laofrendasa.github.io/pdfLite
 Comparador de Documentos | Documentos | Compara entre dos archivos para validar cambios. | https://laofrendasa.github.io/herramientas/comparaDocs
 Generador de Sorteos | tres60 Agency | A partir de un listado realiza el sorteo o sorteos periódicos. | https://laofrendasa.github.io/sorteos
-Bingo Interactivo | tres60 Agency | Sorteo de Bingo - Tarjetas equivalentes número único a tarjeta. | https://laofrendasa.github.io/bingo
+Bingo Interactivo | tres60 Agency | Sorteo de Bingo - Tarjetas equivalentes número único a tarjeta. | https://laofrendasa.github.io/herramientas/bingo
 Generador de Còdigos QR | Documentos | Compara entre dos archivos para validar cambios. | https://laofrendasa.github.io/herramientas/generador-qr
 Calculadora de Horas Extra | Operaciones | Calcula las horas extra del personal de Operaciones. | https://laofrendasa.github.io/claudeHExtraOp/HorasExtra_Operaciones.html
