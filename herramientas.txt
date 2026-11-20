@@ -40,5 +40,5 @@ Comparador de Documentos | Documentos | Compara entre dos archivos para validar 
 Generador de Sorteos | tres60 Agency | A partir de un listado realiza el sorteo o sorteos periódicos. | https://laofrendasa.github.io/sorteos
 Bingo Interactivo | tres60 Agency | Sorteo de Bingo - Tarjetas equivalentes número único a tarjeta. | https://laofrendasa.github.io/herramientas/bingo
 Generador de Còdigos QR | Documentos | Compara entre dos archivos para validar cambios. | https://laofrendasa.github.io/herramientas/generador-qr
-Depurador BD Telefónicos | Comercial | Depura listados de Excel con nùmreos de Prospectos. | https://laofrendasa.github.io/herramientas/comparaDocs
+Depurador BD Telefónicos | Comercial | Depura listados de Excel con nùmreos de Prospectos. | https://laofrendasa.github.io/herramientas/depurabd_tel
 Calculadora de Horas Extra | Operaciones | Calcula las horas extra del personal de Operaciones. | https://laofrendasa.github.io/claudeHExtraOp/HorasExtra_Operaciones.html
