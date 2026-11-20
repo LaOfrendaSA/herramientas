@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Depurador de bases de leads · La Ofrenda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/libphonenumber-js@1.13.15/bundle/libphonenumber-max.js"></script>
+<style>
+:root{
+  color-scheme: light;
+  --magenta:#FF008F; --azul:#1B396B; --azul-formal:#001E77; --gris:#B3B3B3;
+  --bg:#FFFFFF; --surface:#F0F4FA; --line:#D9E1EE; --ink:#1A2440; --ink-2:#4A5675; --ink-3:#6B7591;
+  --ok:#1E8449; --ok-bg:#E9F7EF; --warn:#9A6200; --warn-bg:#FFF5E0; --bad:#B03A2E; --bad-bg:#FDEDEC;
+  --mag-faint:rgba(255,0,143,.07);
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+:root[data-theme="dark"]{ color-scheme: light; }
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 'Nunito Sans',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}
+h1,h2,h3{font-family:'Nunito','Nunito Sans',system-ui,sans-serif;color:var(--azul-formal);margin:0}
+h2{font-size:19px;font-weight:700} h3{font-size:15px;font-weight:700}
+button,input,select,textarea{font:inherit;color:inherit}
+.top{background:var(--azul);border-bottom:3px solid var(--magenta);color:#fff}
+.top .in{max-width:1180px;margin:0 auto;padding:16px 20px;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column}
+.brand small{color:#D4DCF0;font-size:12px;letter-spacing:.4px}
+.brand b{font-family:'Nunito',sans-serif;font-size:21px;font-weight:700;color:#fff}
+.local{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:6px 12px}
+.local i{width:8px;height:8px;border-radius:50%;background:#58D68D;display:inline-block}
+.tabs{max-width:1180px;margin:0 auto;padding:0 20px;display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tab{background:none;border:0;border-bottom:3px solid transparent;padding:14px 16px 11px;font-weight:700;color:var(--ink-2);cursor:pointer}
+.tab[aria-selected="true"]{color:var(--azul-formal);border-bottom-color:var(--magenta)}
+.tab:disabled{opacity:.45;cursor:not-allowed}
+main{max-width:1180px;margin:0 auto;padding:22px 20px 80px}
+.lead-in{color:var(--ink-2);max-width:78ch;margin:4px 0 18px}
+section{margin-bottom:26px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:860px){.grid3{grid-template-columns:1fr}}
+.drop{border:1.5px dashed #AFC0DA;border-radius:8px;padding:16px;background:var(--surface);display:flex;flex-direction:column;gap:6px;min-height:150px}
+.drop.main{border-color:var(--azul);background:#fff;border-style:solid;box-shadow:inset 0 0 0 1px var(--azul)}
+.drop.over{background:var(--mag-faint);border-color:var(--magenta)}
+.drop p{margin:0;color:var(--ink-2);font-size:13px}
+.drop .files{font-size:12.5px;color:var(--ink);display:flex;flex-direction:column;gap:3px;margin-top:auto}
+.drop .files span{display:flex;justify-content:space-between;gap:8px;background:#fff;border:1px solid var(--line);border-radius:4px;padding:3px 8px}
+.drop .files button{border:0;background:none;color:var(--bad);cursor:pointer;padding:0 2px}
+.btn{border:1px solid var(--azul);background:#fff;color:var(--azul);border-radius:4px;padding:9px 14px;font-weight:700;cursor:pointer;font-size:13px}
+.btn:hover{background:var(--surface)}
+.btn.primary{background:var(--magenta);border-color:var(--magenta);color:#fff;letter-spacing:1.5px;text-transform:uppercase;padding:12px 22px;font-size:14px}
+.btn.primary:hover{filter:brightness(.95)}
+.btn.small{padding:5px 10px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:focus-visible,.tab:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid rgba(255,0,143,.45);outline-offset:2px}
+label.pick{display:inline-flex}
+.cfg{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;background:var(--surface);border-radius:8px;padding:14px 16px}
+.cfg .f{display:flex;flex-direction:column;gap:5px}
+.cfg .f>span{font-size:12px;font-weight:700;color:var(--ink-2)}
+select,input[type=text],input[type=number],input[type=time]{border:1px solid #B9C6DB;border-radius:4px;padding:6px 8px;background:#fff;max-width:100%}
+.chips{display:flex;flex-wrap:wrap;gap:6px;max-width:640px}
+.chip{border:1px solid #B9C6DB;border-radius:999px;padding:3px 10px;font-size:12px;background:#fff;cursor:pointer;user-select:none}
+.chip[aria-pressed="true"]{background:var(--azul);border-color:var(--azul);color:#fff}
+.card{border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:12px;background:#fff}
+.card-h{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.meta{font-size:12.5px;color:var(--ink-3)}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th{text-align:left;color:var(--ink-2);font-weight:700;font-size:11.5px;padding:8px;border-bottom:2px solid var(--magenta);background:var(--mag-faint);white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.ex{color:var(--ink-3);max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-left:4px solid var(--azul);border-radius:6px;padding:10px 12px;background:#fff}
+.kpi.hl{border-left-color:var(--magenta);background:var(--mag-faint)}
+.kpi b{display:block;font-family:'Nunito',sans-serif;font-size:26px;line-height:1.15;color:var(--azul-formal)}
+.kpi span{font-size:12px;color:var(--ink-2)}
+.kpi em{font-style:normal;font-size:12px;color:var(--ink-3);display:block}
+.alert{border-radius:8px;padding:14px 16px;margin-bottom:12px;border:1px solid}
+.alert.bad{background:var(--bad-bg);border-color:#F1B5AE;color:#5E1F18}
+.alert.warn{background:var(--warn-bg);border-color:#F0D199;color:#5A3A00}
+.alert.ok{background:var(--ok-bg);border-color:#A9DFBF;color:#145A32}
+.alert h3{color:inherit;margin-bottom:6px}
+.alert ul{margin:6px 0 0 18px;padding:0}
+.pill{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.p-APTO{background:var(--ok-bg);color:var(--ok)} .p-DUPLICADO,.p-EXCLUIDO,.p-SIN_TELEFONO_VALIDO{background:var(--bad-bg);color:var(--bad)} .p-YA_EN_BASE_ANTERIOR{background:var(--warn-bg);color:var(--warn)}
+.g{display:inline-flex;width:22px;height:22px;align-items:center;justify-content:center;border-radius:4px;font-weight:800;font-size:12px;color:#fff;background:var(--ink-3)}
+.g.A{background:var(--azul-formal)} .g.B{background:#4F6FA8} .g.C{background:#8D99B3}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px} @media (max-width:860px){.two{grid-template-columns:1fr}}
+.bar{height:8px;background:var(--surface);border-radius:4px;overflow:hidden;min-width:60px}
+.bar i{display:block;height:100%;background:var(--azul)}
+textarea{width:100%;min-height:170px;border:1px solid #B9C6DB;border-radius:6px;padding:10px;font-size:12.5px;line-height:1.5;resize:vertical}
+.row-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.hidden{display:none!important}
+.progress{height:6px;background:var(--surface);border-radius:3px;overflow:hidden;margin-top:10px}
+.progress i{display:block;height:100%;width:0;background:var(--magenta);transition:width .2s}
+/* Gestión */
+.gbar{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:12px}
+.gbar .f{display:flex;flex-direction:column;gap:4px}.gbar .f>span{font-size:11.5px;font-weight:700;color:var(--ink-2)}
+.lead{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:10px;display:grid;grid-template-columns:minmax(220px,1.1fr) minmax(280px,1.6fr);gap:14px;background:#fff}
+.lead.closed{background:#FAFBFD}
+@media (max-width:760px){.lead{grid-template-columns:1fr}}
+.lead .who b{font-family:'Nunito',sans-serif;font-size:15px;color:var(--azul-formal)}
+.lead .who div{font-size:12.5px;color:var(--ink-2)}
+.tels{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tel{display:inline-flex;align-items:center;gap:6px;border:1px solid #B9C6DB;border-radius:4px;padding:3px 8px;font-variant-numeric:tabular-nums;font-weight:700;color:var(--azul-formal);text-decoration:none;font-size:13px;background:#fff}
+.tel small{font-weight:400;color:var(--ink-3)}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.form .full{grid-column:1/-1}
+.form select,.form input{width:100%}
+.state{font-size:12px;color:var(--ink-3);margin-top:6px}
+.hist{font-size:11.5px;color:var(--ink-3);white-space:pre-line;margin-top:6px;max-height:70px;overflow:auto}
+.pager{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:12px}
+.banner{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;margin-bottom:12px}
+.toast{position:fixed;left:50%;bottom:0;transform:translateX(-50%);margin-bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--azul);color:#fff;padding:10px 16px;border-radius:6px;font-size:13px;box-shadow:0 4px 18px rgba(0,30,119,.25);z-index:50;max-width:92vw}
+.foot{margin-top:30px;padding:14px 16px;border:1px solid var(--line);border-radius:6px;font-size:12px;color:var(--ink-2);line-height:1.8}
+details summary{cursor:pointer;font-weight:700;color:var(--azul)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <div class="brand"><small>La Ofrenda · Gerencia TIC</small><b>Depurador de bases de leads</b></div>
+  <div class="local" title="Los archivos se leen y procesan en este navegador. No se envían ni se guardan en ningún servidor."><i></i>Procesamiento local · nada se guarda</div>
+</div></header>
+<nav class="tabs" role="tablist">
+  <button class="tab" role="tab" id="t-dep" aria-selected="true">1. Depuración</button>
+  <button class="tab" role="tab" id="t-ges" aria-selected="false">2. Gestión de llamadas</button>
+</nav>
+<main>
+<!-- ============ DEPURACIÓN ============ -->
+<div id="v-dep">
+  <p class="lead-in">Cargue la base recibida. La herramienta identifica las columnas de teléfono, valida cada número contra el plan de numeración de su país, cruza duplicados internos y contra bases anteriores, y genera el archivo depurado con su hoja de observaciones.</p>
+  <section>
+    <div class="grid3">
+      <div class="drop main" data-kind="new">
+        <h3>Base a evaluar</h3>
+        <p>Excel o CSV recibido del proveedor. Puede cargar varios archivos; se consolidan.</p>
+        <label class="pick"><input type="file" accept=".xlsx,.xls,.csv" multiple hidden><span class="btn">Seleccionar archivos</span></label>
+        <div class="files"></div>
+      </div>
+      <div class="drop" data-kind="prev">
+        <h3>Bases anteriores <span class="meta">(opcional)</span></h3>
+        <p>Bases ya compradas o gestionadas, exportes de clientes, archivos de gestión previos. Se cruzan por teléfono, identificación y correo.</p>
+        <label class="pick"><input type="file" accept=".xlsx,.xls,.csv" multiple hidden><span class="btn">Seleccionar archivos</span></label>
+        <div class="files"></div>
+      </div>
+      <div class="drop" data-kind="excl">
+        <h3>Lista de exclusión <span class="meta">(opcional)</span></h3>
+        <p>Números que no se deben llamar: resultado de validación RNE, solicitudes de no contacto, listas internas.</p>
+        <label class="pick"><input type="file" accept=".xlsx,.xls,.csv" multiple hidden><span class="btn">Seleccionar archivos</span></label>
+        <div class="files"></div>
+      </div>
+    </div>
+  </section>
+  <section class="cfg">
+    <div class="f"><span>País por defecto de los números</span>
+      <select id="country"></select>
+      <small class="meta">Los números con +indicativo se validan con su propio país.</small></div>
+    <div class="f"><span>Zona objetivo (departamentos de operación)</span><div class="chips" id="zone"></div>
+      <details style="margin-top:4px"><summary class="meta">Agregar otro departamento</summary><div class="chips" id="zone-more" style="margin-top:6px"></div></details></div>
+  </section>
+  <section id="maps"></section>
+  <section id="go" class="hidden">
+    <div class="row-actions"><button class="btn primary" id="process">Depurar base</button><span class="meta" id="process-msg"></span></div>
+    <div class="progress hidden" id="prog"><i></i></div>
+  </section>
+  <div id="results" class="hidden"></div>
+</div>
+
+<!-- ============ GESTIÓN ============ -->
+<div id="v-ges" class="hidden">
+  <p class="lead-in">Registre cada intento de llamada. El avance vive solo en esta pestaña: descargue el archivo de gestión al terminar la jornada y vuelva a cargarlo para continuar.</p>
+  <section class="row-actions" style="margin-bottom:14px">
+    <label class="pick"><input type="file" id="g-import" accept=".xlsx" hidden><span class="btn">Cargar archivo de gestión</span></label>
+    <button class="btn" id="g-export" disabled>Descargar avance (.xlsx)</button>
+    <span class="meta" id="g-dirty"></span>
+  </section>
+  <div id="g-empty" class="alert warn"><h3>Sin leads cargados</h3>Depure una base en la pestaña 1 o cargue un archivo de gestión descargado previamente.</div>
+  <div id="g-main" class="hidden">
+    <div id="g-banner" class="banner"></div>
+    <section><div class="kpis" id="g-kpis"></div></section>
+    <section class="two" id="g-breaks"></section>
+    <section>
+      <div class="gbar">
+        <div class="f"><span>Agente</span><input type="text" id="g-agent" placeholder="Nombre de quien llama" size="18"></div>
+        <div class="f"><span>Mostrar</span><select id="g-filter"><option value="pend">Pendientes y en gestión</option><option value="0">Sin llamar</option><option value="open">En gestión</option><option value="closed">Cerrados</option><option value="all">Todos</option></select></div>
+        <div class="f"><span>Grado</span><select id="g-grade"><option value="">Todos</option><option>A</option><option>B</option><option>C</option></select></div>
+        <div class="f"><span>Ciudad</span><select id="g-city"><option value="">Todas</option></select></div>
+        <div class="f"><span>Buscar</span><input type="text" id="g-q" placeholder="Nombre, ID o teléfono" size="20"></div>
+        <div class="f"><span>Intentos máx.</span><input type="number" id="g-max" min="1" max="10" value="3" style="width:70px"></div>
+      </div>
+      <details style="margin-bottom:12px"><summary>Franja horaria de contacto</summary>
+        <div class="gbar" style="margin-top:8px">
+          <div class="f"><span>Lun–Vie desde</span><input type="time" id="h-wd-a" value="07:00"></div>
+          <div class="f"><span>hasta</span><input type="time" id="h-wd-b" value="19:00"></div>
+          <div class="f"><span>Sábado desde</span><input type="time" id="h-sa-a" value="08:00"></div>
+          <div class="f"><span>hasta</span><input type="time" id="h-sa-b" value="15:00"></div>
+          <div class="f"><span>Domingos y festivos</span><select id="h-su"><option value="no">No llamar</option><option value="si">Permitido</option></select></div>
+        </div>
+        <p class="meta" style="margin:0">Valores por defecto de referencia. Ajústelos a la política vigente que defina Jurídica/SAC; la herramienta solo advierte, no bloquea.</p>
+      </details>
+      <div id="g-list"></div>
+      <div class="pager" id="g-pager"></div>
+    </section>
+  </div>
+</div>
+<div class="foot"><b>Tratamiento de datos.</b> Esta herramienta no envía ni almacena información: los archivos se procesan en la memoria del navegador y se pierden al cerrar la pestaña. La validación de teléfonos usa los metadatos públicos del plan de numeración (libphonenumber, versión empaquetada) y no confirma que el número esté activo ni que pertenezca al titular; eso solo lo confirma la llamada. Antes de contactar, verifique la autorización de tratamiento de datos de la base (Ley 1581 de 2012) y la consulta al Registro de Números Excluidos.</div>
+</main>
+<div class="toast hidden" id="toast" role="status"></div>
+<script>
+const DANE={"Amazonas":["Leticia","Puerto Nariño"],"Antioquia":["Abejorral","Abriaquí","Alejandría","Amagá","Amalfi","Andes","Angelópolis","Angostura","Anorí","Anzá","Apartadó","Arboletes","Argelia","Armenia","Barbosa","Bello","Belmira","Betania","Betulia","Briceño","Buriticá","Cáceres","Caicedo","Caldas","Campamento","Cañasgordas","Caracolí","Caramanta","Carepa","Carolina del Príncipe","Caucasia","Chigorodó","Cisneros","Ciudad Bolívar","Cocorná","Concepción","Concordia","Copacabana","Dabeiba","Donmatías","Ebéjico","El Bagre","El Carmen de Viboral","El Peñol","El Retiro","El Santuario","Entrerríos","Envigado","Fredonia","Frontino","Giraldo","Girardota","Gómez Plata","Granada","Guadalupe","Guarne","Guatapé","Heliconia","Hispania","Itagüí","Ituango","Jardín","Jericó","La Ceja","La Estrella","La Pintada","La Unión","Liborina","Maceo","Marinilla","Medellín","Montebello","Murindó","Mutatá","Nariño","Nechí","Necoclí","Olaya","Peque","Pueblorrico","Puerto Berrío","Puerto Nare","Puerto Triunfo","Remedios","Rionegro","Sabanalarga","Sabaneta","Salgar","San Andrés de Cuerquia","San Carlos","San Francisco","San Jerónimo","San José de la Montaña","San Juan de Urabá","San Luis","San Pedro de Urabá","San Pedro de los Milagros","San Rafael","San Roque","San Vicente","Santa Bárbara","Santa Fe de Antioquia","Santa Rosa de Osos","Santo Domingo","Segovia","Sonsón","Sopetrán","Támesis","Tarazá","Tarso","Titiribí","Toledo","Turbo","Uramita","Urrao","Valdivia","Valparaíso","Vegachí","Venecia","Vigía del Fuerte","Yalí","Yarumal","Yolombó","Yondó","Zaragoza"],"Arauca":["Arauca","Arauquita","Cravo Norte","Fortul","Puerto Rondón","Saravena","Tame"],"Atlántico":["Baranoa","Barranquilla","Campo de la Cruz","Candelaria","Galapa","Juan de Acosta","Luruaco","Malambo","Manatí","Palmar de Varela","Piojó","Polonuevo","Ponedera","Puerto Colombia","Repelón","Sabanagrande","Sabanalarga","Santa Lucía","Santo Tomás","Soledad","Suán","Tubará","Usiacurí"],"Bolívar":["Achí","Altos del Rosario","Arenal","Arjona","Arroyohondo","Barranco de Loba","Brazuelo de Papayal","Calamar","Cantagallo","Cartagena de Indias","Cicuco","Clemencia","Córdoba","El Carmen de Bolívar","El Guamo","El Peñón","Hatillo de Loba","Magangué","Mahates","Margarita","María la Baja","Mompós","Montecristo","Morales","Norosí","Pinillos","Regidor","Río Viejo","San Cristóbal","San Estanislao","San Fernando","San Jacinto del Cauca","San Jacinto","San Juan Nepomuceno","San Martín de Loba","San Pablo","Santa Catalina","Santa Rosa","Santa Rosa del Sur","Simití","Soplaviento","Talaigua Nuevo","Tiquisio","Turbaco","Turbaná","Villanueva","Zambrano"],"Boyacá":["Almeida","Aquitania","Arcabuco","Belén","Berbeo","Betéitiva","Boavita","Boyacá","Briceño","Buenavista","Busbanzá","Caldas","Campohermoso","Cerinza","Chinavita","Chiquinquirá","Chíquiza","Chiscas","Chita","Chitaraque","Chivatá","Chivor","Ciénega","Cómbita","Coper","Corrales","Covarachía","Cubará","Cucaita","Cuítiva","Duitama","El Cocuy","El Espino","Firavitoba","Floresta","Gachantivá","Gámeza","Garagoa","Guacamayas","Guateque","Guayatá","Güicán","Iza","Jenesano","Jericó","La Capilla","La Uvita","La Victoria","Labranzagrande","Macanal","Maripí","Miraflores","Mongua","Monguí","Moniquirá","Motavita","Muzo","Nobsa","Nuevo Colón","Oicatá","Otanche","Pachavita","Páez","Paipa","Pajarito","Panqueba","Pauna","Paya","Paz del Río","Pesca","Pisba","Puerto Boyacá","Quípama","Ramiriquí","Ráquira","Rondón","Saboyá","Sáchica","Samacá","San Eduardo","San José de Pare","San Luis de Gaceno","San Mateo","San Miguel de Sema","San Pablo de Borbur","Santa María","Santa Rosa de Viterbo","Santa Sofía","Santana","Sativanorte","Sativasur","Siachoque","Soatá","Socha","Socotá","Sogamoso","Somondoco","Sora","Soracá","Sotaquirá","Susacón","Sutamarchán","Sutatenza","Tasco","Tenza","Tibaná","Tibasosa","Tinjacá","Tipacoque","Toca","Togüí","Tópaga","Tota","Tunja","Tununguá","Turmequé","Tuta","Tutazá","Úmbita","Ventaquemada","Villa de Leyva","Viracachá","Zetaquira"],"Caldas":["Aguadas","Anserma","Aranzazu","Belalcázar","Chinchiná","Filadelfia","La Dorada","La Merced","Manizales","Manzanares","Marmato","Marquetalia","Marulanda","Neira","Norcasia","Pácora","Palestina","Pensilvania","Riosucio","Risaralda","Salamina","Samaná","San José","Supía","Victoria","Villamaría","Viterbo"],"Caquetá":["Albania","Belén de los Andaquíes","Cartagena del Chairá","Curillo","El Doncello","El Paujil","Florencia","La Montañita","Milán","Morelia","Puerto Rico","San José del Fragua","San Vicente del Caguán","Solano","Solita","Valparaíso"],"Casanare":["Aguazul","Chámeza","Hato Corozal","La Salina","Maní","Monterrey","Nunchía","Orocué","Paz de Ariporo","Pore","Recetor","Sabanalarga","Sácama","San Luis de Palenque","Támara","Tauramena","Trinidad","Villanueva","Yopal"],"Cauca":["Almaguer","Argelia","Balboa","Bolívar","Buenos Aires","Cajibío","Caldono","Caloto","Corinto","El Tambo","Florencia","Guachené","Guapí","Inzá","Jambaló","La Sierra","La Vega","López de Micay","Mercaderes","Miranda","Morales","Padilla","Páez","Patía","Piamonte","Piendamó","Popayán","Puerto Tejada","Puracé","Rosas","San Sebastián","Santa Rosa","Santander de Quilichao","Silvia","Sotará","Suárez","Sucre","Timbío","Timbiquí","Toribío","Totoró","Villa Rica"],"Cesar":["Aguachica","Agustín Codazzi","Astrea","Becerril","Bosconia","Chimichagua","Chiriguaná","Curumaní","El Copey","El Paso","Gamarra","González","La Gloria (Cesar)","La Jagua de Ibirico","La Paz","Manaure Balcón del Cesar","Pailitas","Pelaya","Pueblo Bello","Río de Oro","San Alberto","San Diego","San Martín","Tamalameque","Valledupar"],"Chocó":["Acandí","Alto Baudó","Bagadó","Bahía Solano","Bajo Baudó","Bojayá","Cantón de San Pablo","Cértegui","Condoto","El Atrato","El Carmen de Atrato","El Carmen del Darién","Istmina","Juradó","Litoral de San Juan","Lloró","Medio Atrato","Medio Baudó","Medio San Juan","Nóvita","Nuquí","Quibdó","Río Iró","Río Quito","Riosucio","San José del Palmar","Sipí","Tadó","Unión Panamericana","Unguía"],"Cundinamarca":["Agua de Dios","Albán","Anapoima","Anolaima","Apulo","Arbeláez","Beltrán","Bituima","Bogotá","Bojacá","Cabrera","Cachipay","Cajicá","Caparrapí","Cáqueza","Carmen de Carupa","Chaguaní","Chía","Chipaque","Choachí","Chocontá","Cogua","Cota","Cucunubá","El Colegio","El Peñón","El Rosal","Facatativá","Fómeque","Fosca","Funza","Fúquene","Fusagasugá","Gachalá","Gachancipá","Gachetá","Gama","Girardot","Granada","Guachetá","Guaduas","Guasca","Guataquí","Guatavita","Guayabal de Síquima","Guayabetal","Gutiérrez","Jerusalén","Junín","La Calera","La Mesa","La Palma","La Peña","La Vega","Lenguazaque","Machetá","Madrid","Manta","Medina","Mosquera","Nariño","Nemocón","Nilo","Nimaima","Nocaima","Pacho","Paime","Pandi","Paratebueno","Pasca","Puerto Salgar","Pulí","Quebradanegra","Quetame","Quipile","Ricaurte","San Antonio del Tequendama","San Bernardo","San Cayetano","San Francisco","San Juan de Rioseco","Sasaima","Sesquilé","Sibaté","Silvania","Simijaca","Soacha","Sopó","Subachoque","Suesca","Supatá","Susa","Sutatausa","Tabio","Tausa","Tena","Tenjo","Tibacuy","Tibirita","Tocaima","Tocancipá","Topaipí","Ubalá","Ubaque","Ubaté","Une","Útica","Venecia","Vergara","Vianí","Villagómez","Villapinzón","Villeta","Viotá","Yacopí","Zipacón","Zipaquirá"],"Córdoba":["Ayapel","Buenavista","Canalete","Cereté","Chimá","Chinú","Ciénaga de Oro","Cotorra","La Apartada","Lorica","Los Córdobas","Momil","Montelíbano","Montería","Moñitos","Planeta Rica","Pueblo Nuevo","Puerto Escondido","Puerto Libertador","Purísima","Sahagún","San Andrés de Sotavento","San Antero","San Bernardo del Viento","San Carlos","San José de Uré","San Pelayo","Tierralta","Tuchín","Valencia"],"Guainía":["Inírida"],"Guaviare":["Calamar","El Retorno","Miraflores","San José del Guaviare"],"Huila":["Acevedo","Agrado","Aipe","Algeciras","Altamira","Baraya","Campoalegre","Colombia","El Pital","Elías","Garzón","Gigante","Guadalupe","Hobo","Íquira","Isnos","La Argentina","La Plata","Nátaga","Neiva","Oporapa","Paicol","Palermo","Palestina","Pitalito","Rivera","Saladoblanco","San Agustín","Santa María","Suaza","Tarqui","Tello","Teruel","Tesalia","Timaná","Villavieja","Yaguará"],"La Guajira":["Albania","Barrancas","Dibulla","Distracción","El Molino","Fonseca","Hatonuevo","La Jagua del Pilar","Maicao","Manaure","Riohacha","San Juan del Cesar","Uribia","Urumita","Villanueva"],"Magdalena":["Algarrobo","Aracataca","Ariguaní","Cerro de San Antonio","Chibolo","Chibolo","Ciénaga","Concordia","El Banco","El Piñón","El Retén","Fundación","Guamal","Nueva Granada","Pedraza","Pijiño del Carmen","Pivijay","Plato","Pueblo Viejo","Remolino","Sabanas de San Ángel","Salamina","San Sebastián de Buenavista","San Zenón","Santa Ana","Santa Bárbara de Pinto","Santa Marta","Sitionuevo","Tenerife","Zapayán","Zona Bananera"],"Meta":["Acacías","Barranca de Upía","Cabuyaro","Castilla la Nueva","Cubarral","Cumaral","El Calvario","El Castillo","El Dorado","Fuente de Oro","Granada","Guamal","La Macarena","La Uribe","Lejanías","Mapiripán","Mesetas","Puerto Concordia","Puerto Gaitán","Puerto Lleras","Puerto López","Puerto Rico","Restrepo","San Carlos de Guaroa","San Juan de Arama","San Juanito","San Martín","Villavicencio","Vista Hermosa"],"Nariño":["Aldana","Ancuyá","Arboleda","Barbacoas","Belén","Buesaco","Chachagüí","Colón","Consacá","Contadero","Córdoba","Cuaspud","Cumbal","Cumbitara","El Charco","El Peñol","El Rosario","El Tablón","El Tambo","Francisco Pizarro","Funes","Guachucal","Guaitarilla","Gualmatán","Iles","Imués","Ipiales","La Cruz","La Florida","La Llanada","La Tola","La Unión","Leiva","Linares","Los Andes","Magüí Payán","Mallama","Mosquera","Nariño","Olaya Herrera","Ospina","Pasto","Policarpa","Potosí","Providencia","Puerres","Pupiales","Ricaurte","Roberto Payán","Samaniego","San Bernardo","San José de Albán","San Lorenzo","San Pablo","San Pedro de Cartago","Sandoná","Santa Bárbara","Santacruz","Sapuyes","Taminango","Tangua","Tumaco","Túquerres","Yacuanquer"],"Norte de Santander":["Ábrego","Arboledas","Bochalema","Bucarasica","Cáchira","Cácota","Chinácota","Chitagá","Convención","Cúcuta","Cucutilla","Duranía","El Carmen","El Tarra","El Zulia","Gramalote","Hacarí","Herrán","La Esperanza","La Playa de Belén","Labateca","Los Patios","Lourdes","Mutiscua","Ocaña","Pamplona","Pamplonita","Puerto Santander","Ragonvalia","Salazar de Las Palmas","San Calixto","San Cayetano","Santiago","Santo Domingo de Silos","Sardinata","Teorama","Tibú","Toledo","Villa Caro","Villa del Rosario"],"Putumayo":["Colón","Mocoa","Orito","Puerto Asís","Puerto Caicedo","Puerto Guzmán","Puerto Leguízamo","San Francisco","San Miguel","Santiago","Sibundoy","Valle del Guamuez","Villagarzón"],"Quindío":["Armenia","Buenavista","Calarcá","Circasia","Córdoba","Filandia","Génova","La Tebaida","Montenegro","Pijao","Quimbaya","Salento"],"Risaralda":["Apía","Balboa","Belén de Umbría","Dosquebradas","Guática","La Celia","La Virginia","Marsella","Mistrató","Pereira","Pueblo Rico","Quinchía","Santa Rosa de Cabal","Santuario"],"San Andrés y Providencia":["Providencia y Santa Catalina Islas","San Andrés"],"Santander":["Aguada","Albania","Aratoca","Barbosa","Barichara","Barrancabermeja","Betulia","Bolívar","Bucaramanga","Cabrera","California","Capitanejo","Carcasí","Cepitá","Cerrito","Charalá","Charta","Chima","Chipatá","Cimitarra","Concepción","Confines","Contratación","Coromoro","Curití","El Carmen de Chucurí","El Guacamayo","El Peñón","El Playón","El Socorro","Encino","Enciso","Florián","Floridablanca","Galán","Gámbita","Girón","Guaca","Guadalupe","Guapotá","Guavatá","Güepsa","Hato","Jesús María","Jordán","La Belleza","La Paz","Landázuri","Lebrija","Los Santos","Macaravita","Málaga","Matanza","Mogotes","Molagavita","Ocamonte","Oiba","Onzaga","Palmar","Palmas del Socorro","Páramo","Piedecuesta","Pinchote","Puente Nacional","Puerto Parra","Puerto Wilches","Rionegro","Sabana de Torres","San Andrés","San Benito","San Gil","San Joaquín","San José de Miranda","San Miguel","San Vicente de Chucurí","Santa Bárbara","Santa Helena del Opón","Simacota","Suaita","Sucre","Suratá","Tona","Valle de San José","Vélez","Vetas","Villanueva","Zapatoca"],"Sucre":["Buenavista","Caimito","Chalán","Colosó","Corozal","Coveñas","El Roble","Galeras","Guaranda","La Unión","Los Palmitos","Majagual","Morroa","Ovejas","Sampués","San Antonio de Palmito","San Benito Abad","San Juan de Betulia","San Marcos","San Onofre","San Pedro","Sincé","Sincelejo","Sucre","Tolú","Tolú Viejo"],"Tolima":["Alpujarra","Alvarado","Ambalema","Anzoátegui","Armero","Ataco","Cajamarca","Carmen de Apicalá","Casabianca","Chaparral","Coello","Coyaima","Cunday","Dolores","El Espinal","Falán","Flandes","Fresno","Guamo","Herveo","Honda","Ibagué","Icononzo","Lérida","Líbano","Mariquita","Melgar","Murillo","Natagaima","Ortega","Palocabildo","Piedras","Planadas","Prado","Purificación","Rioblanco","Roncesvalles","Rovira","Saldaña","San Antonio","San Luis","Santa Isabel","Suárez","Valle de San Juan","Venadillo","Villahermosa","Villarrica"],"Valle del Cauca":["Alcalá","Andalucía","Ansermanuevo","Argelia","Bolívar","Buenaventura","Buga","Bugalagrande","Caicedonia","Cali","Calima","Candelaria","Cartago","Dagua","El Águila","El Cairo","El Cerrito","El Dovio","Florida","Ginebra","Guacarí","Jamundí","La Cumbre","La Unión","La Victoria","Obando","Palmira","Pradera","Restrepo","Riofrío","Roldanillo","San Pedro","Sevilla","Toro","Trujillo","Tuluá","Ulloa","Versalles","Vijes","Yotoco","Yumbo","Zarzal"],"Vaupés":["Carurú","Mitú","Taraira"],"Vichada":["Cumaribo","La Primavera","Puerto Carreño","Santa Rosalía"]};
+/* ===== Núcleo de depuración (sin UI) ===== */
+const LO = (() => {
+  const norm = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/\s+/g, ' ').trim();
+  const PLACEHOLDER = /^(|-+|\.+|_+|0+|N\/?A|NA|NO|SIN|SIN .*|NO TIENE|NO REGISTRA|NINGUNO|NULL|NONE|X+|\*+|#N\/A)$/;
+  const isPlaceholder = v => PLACEHOLDER.test(norm(v));
+
+  /* --- Geografía: municipios DANE y indicativos fijos (Res. CRC 5826 / plan 60X) --- */
+  const IND = { 'AMAZONAS':'8','ANTIOQUIA':'4','ARAUCA':'7','ATLANTICO':'5','BOLIVAR':'5','BOYACA':'8','CALDAS':'6','CAQUETA':'8','CASANARE':'8','CAUCA':'2','CESAR':'5','CHOCO':'4','CUNDINAMARCA':'1','BOGOTA D.C.':'1','CORDOBA':'4','GUAINIA':'8','GUAVIARE':'8','HUILA':'8','LA GUAJIRA':'5','MAGDALENA':'5','META':'8','NARINO':'2','NORTE DE SANTANDER':'7','PUTUMAYO':'8','QUINDIO':'6','RISARALDA':'6','SAN ANDRES Y PROVIDENCIA':'8','SANTANDER':'7','SUCRE':'5','TOLIMA':'8','VALLE DEL CAUCA':'2','VAUPES':'8','VICHADA':'8' };
+  const DEP_ALIAS = { 'VALLE':'VALLE DEL CAUCA','BOGOTA':'BOGOTA D.C.','BOGOTA DC':'BOGOTA D.C.','D.C.':'BOGOTA D.C.','DC':'BOGOTA D.C.','SAN ANDRES':'SAN ANDRES Y PROVIDENCIA','GUAJIRA':'LA GUAJIRA','N. SANTANDER':'NORTE DE SANTANDER','NTE SANTANDER':'NORTE DE SANTANDER','NORTE SANTANDER':'NORTE DE SANTANDER' };
+  const MUN_ALIAS = { 'CARTAGENA':'CARTAGENA DE INDIAS','SAN JOSE DE CUCUTA':'CUCUTA','GUADALAJARA DE BUGA':'BUGA','SAN JUAN DE PASTO':'PASTO','PUERTO INIRIDA':'INIRIDA','SANTIAGO DE CALI':'CALI','BOGOTA D.C.':'BOGOTA','BOGOTA DC':'BOGOTA','SANTAFE DE BOGOTA':'BOGOTA','SANTA FE DE BOGOTA':'BOGOTA','DOS QUEBRADAS':'DOSQUEBRADAS','STA ROSA DE CABAL':'SANTA ROSA DE CABAL','SANTA ROSA':'SANTA ROSA DE CABAL' };
+  const CAPITAL_PREF = { 'ARMENIA':'QUINDIO','FLORENCIA':'CAQUETA','SAN ANDRES':'SAN ANDRES Y PROVIDENCIA' };
+  const depDisplay = {}, munIdx = new Map(), depSet = new Set();
+  for (const [dep, cities] of Object.entries(DANE)) {
+    const nd = norm(dep); depDisplay[nd] = dep; depSet.add(nd);
+    for (const c of cities) {
+      const nc = norm(c);
+      let entry = { mun: c, dep: nd };
+      if (nc === 'BOGOTA') entry = { mun: 'Bogotá D.C.', dep: 'BOGOTA D.C.' };
+      if (!munIdx.has(nc)) munIdx.set(nc, []);
+      munIdx.get(nc).push(entry);
+    }
+  }
+  depDisplay['BOGOTA D.C.'] = 'Bogotá D.C.'; depSet.add('BOGOTA D.C.');
+  const matchDep = s => { const n = norm(s).replace(/^DEPTO\.? |^DEPARTAMENTO (DEL |DE )?/, ''); if (depSet.has(n)) return n; return DEP_ALIAS[n] || null; };
+  const matchMun = s => { let n = norm(s).replace(/\.$/, ''); n = MUN_ALIAS[n] || n; return munIdx.get(n) || null; };
+  const cityCache = new Map();
+  function resolveCity(raw, depRaw, zoneDeps) {
+    const key = norm(raw) + '|' + norm(depRaw) + '|' + (zoneDeps || []).join(',');
+    if (cityCache.has(key)) return cityCache.get(key);
+    const r = _resolveCity(raw, depRaw, zoneDeps || []); cityCache.set(key, r); return r;
+  }
+  function _resolveCity(raw, depRaw, zoneDeps) {
+    if (raw == null || isPlaceholder(raw)) return { status: 'SIN_DATO' };
+    let depHint = depRaw && !isPlaceholder(depRaw) ? matchDep(depRaw) : null;
+    const whole = norm(raw);
+    const parts = [whole, ...whole.split(/[\/\-\(\),;|]+/).map(p => p.trim()).filter(Boolean)];
+    let cands = null, used = null;
+    for (const p of parts) { const m = matchMun(p); if (m) { cands = m; used = p; break; } }
+    for (const p of parts) { if (p === used) continue; const d = matchDep(p); if (d) { depHint = depHint || d; } }
+    if (!cands) {
+      if (depHint) return { status: 'SOLO_DEPARTAMENTO', dep: depHint };
+      return { status: 'NO_RECONOCIDO' };
+    }
+    let pick = null, status = 'OK';
+    if (cands.length === 1) pick = cands[0];
+    else if (depHint) pick = cands.find(c => c.dep === depHint) || null;
+    if (!pick) {
+      const n = norm(used);
+      if (CAPITAL_PREF[n]) pick = cands.find(c => c.dep === CAPITAL_PREF[n]);
+      if (!pick) { const z = cands.filter(c => zoneDeps.includes(c.dep)); if (z.length === 1) pick = z[0]; }
+      if (!pick) { pick = cands[0]; status = 'AMBIGUO'; }
+      else status = 'INFERIDO';
+    }
+    return { status, mun: pick.mun, dep: pick.dep };
+  }
+
+  /* --- Teléfonos --- */
+  const STATUS = {
+    VALIDO_MOVIL: { label: 'Válido · móvil', ok: true },
+    VALIDO_FIJO: { label: 'Válido · fijo', ok: true },
+    VALIDO_FIJO_O_MOVIL: { label: 'Válido · fijo o móvil', ok: true },
+    VALIDO_OTRO: { label: 'Válido · otro tipo (VoIP/personal)', ok: true },
+    FIJO_CONVERTIDO: { label: 'Fijo de 7 dígitos convertido a 60X por ciudad', ok: true },
+    NO_CONTACTABLE: { label: 'Línea gratuita/tarifa especial', ok: false },
+    FIJO_ANTIGUO_SIN_CIUDAD: { label: 'Fijo de 7 dígitos sin ciudad para el indicativo', ok: false },
+    RANGO_NO_RECONOCIDO: { label: 'Rango no asignado en el plan de numeración', ok: false },
+    LONGITUD_INVALIDA: { label: 'Longitud inválida', ok: false },
+    PATRON_SOSPECHOSO: { label: 'Patrón de relleno (repetido o secuencial)', ok: false },
+  };
+  const okTypes = { MOBILE: 'VALIDO_MOVIL', FIXED_LINE: 'VALIDO_FIJO', FIXED_LINE_OR_MOBILE: 'VALIDO_FIJO_O_MOVIL', VOIP: 'VALIDO_OTRO', PERSONAL_NUMBER: 'VALIDO_OTRO' };
+  const suspicious = d => /(\d)\1{6,}/.test(d) || /(01234567|12345678|23456789|98765432|87654321|76543210)/.test(d);
+  function splitPhoneCell(v) {
+    if (v == null) return [];
+    let s = typeof v === 'number' ? (Number.isInteger(v) ? String(v) : v.toFixed(0)) : String(v);
+    s = s.trim(); if (!s) return [];
+    return s.split(/[;,\/|\n]|\s+[yYoO]\s+|\s{2,}|\s+-\s+/).map(x => x.trim()).filter(Boolean);
+  }
+  function fromParsed(p, extra) {
+    const t = p.getType();
+    let st = okTypes[t] || (['TOLL_FREE', 'PREMIUM_RATE', 'SHARED_COST', 'UAN', 'VOICEMAIL', 'PAGER'].includes(t) ? 'NO_CONTACTABLE' : 'VALIDO_OTRO');
+    if (extra) st = extra;
+    const nat = String(p.nationalNumber);
+    if (suspicious(nat)) st = 'PATRON_SOSPECHOSO';
+    return { status: st, e164: p.number, country: p.country || '', national: nat, type: t || '' };
+  }
+  const phCache = new Map();
+  function analyzePhone(raw, ctx) {
+    const ck = String(raw) + '|' + (ctx.country || 'CO') + '|' + (ctx.dep || '');
+    if (phCache.has(ck)) return { ...phCache.get(ck) };
+    const r = _analyzePhone(raw, ctx); if (phCache.size < 500000) phCache.set(ck, r); return { ...r };
+  }
+  function _analyzePhone(raw, ctx) {
+    const L = libphonenumber; const country = ctx.country || 'CO';
+    if (isPlaceholder(raw)) return { status: 'VACIO', raw };
+    let s = String(raw).trim().replace(/\s*(ext|extension|ext\.)\s*\d+$/i, '');
+    let cleaned = s.replace(/[^\d+]/g, '');
+    if (cleaned.startsWith('00')) cleaned = '+' + cleaned.slice(2);
+    const digits = cleaned.replace(/\D/g, '');
+    if (!digits || /^0+$/.test(digits)) return { status: 'VACIO', raw };
+    const base = { raw: String(raw) };
+    const tryParse = (txt, c) => { try { return L.parsePhoneNumberFromString(txt, c); } catch (e) { return null; } };
+    if (suspicious(digits) && digits.length <= 10) return { ...base, status: 'PATRON_SOSPECHOSO', national: digits };
+    let p = cleaned.startsWith('+') ? tryParse(cleaned) : tryParse(digits, country);
+    if (p && p.isValid()) return { ...base, ...fromParsed(p) };
+    if (country === 'CO') {
+      if (digits.length === 12 && digits.startsWith('57')) { const q = tryParse('+' + digits); if (q && q.isValid()) return { ...base, ...fromParsed(q) }; }
+      if (digits.length === 7 && /^[2-8]/.test(digits)) {
+        const ind = ctx.dep && IND[ctx.dep];
+        if (!ind) return { ...base, status: 'FIJO_ANTIGUO_SIN_CIUDAD', national: digits };
+        const q = tryParse('60' + ind + digits, 'CO');
+        if (q && q.isValid()) return { ...base, ...fromParsed(q, 'FIJO_CONVERTIDO') };
+        return { ...base, status: 'RANGO_NO_RECONOCIDO', national: digits };
+      }
+    }
+    if (!cleaned.startsWith('+') && digits.length >= 10) {
+      const q = tryParse('+' + digits);
+      if (q && q.isValid() && q.country !== country) return { ...base, ...fromParsed(q) };
+    }
+    let len;
+    try { len = cleaned.startsWith('+') ? L.validatePhoneNumberLength(cleaned) : L.validatePhoneNumberLength(digits, country); } catch (e) { len = 'INVALID'; }
+    return { ...base, status: len ? 'LONGITUD_INVALIDA' : 'RANGO_NO_RECONOCIDO', national: digits };
+  }
+  const displayPhone = (ph, country) => !ph || !ph.e164 ? '' : (ph.country === (country || 'CO') ? ph.national : ph.e164);
+
+  /* --- Otros campos --- */
+  const EMAIL_RE = /^[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}$/i;
+  const TYPO_DOM = /@((hotmial|hotmal|hotmai|hotmil|hotmaill|gmial|gmal|gmai|gamil|gmaill|yaho|yahooo|outlok|outloo|outllok)\.|(gmail|hotmail|outlook)\.(co|con|cm|om)$|yahoo\.con$)/i;
+  function analyzeEmail(v) {
+    if (v == null || isPlaceholder(v)) return { status: 'SIN_DATO', value: '' };
+    const s = String(v).trim().toLowerCase();
+    if (!EMAIL_RE.test(s)) return { status: 'INVALIDO', value: s };
+    if (TYPO_DOM.test(s)) return { status: 'DOMINIO_SOSPECHOSO', value: s };
+    return { status: 'VALIDO', value: s };
+  }
+  function normId(v) {
+    if (v == null || isPlaceholder(v)) return '';
+    let s = typeof v === 'number' ? String(Math.round(v)) : String(v).trim();
+    s = s.replace(/[.\s]/g, '').replace(/-\d$/, '');
+    if (/^\d+$/.test(s)) return s.replace(/^0+/, '');
+    return norm(s);
+  }
+  const idObs = id => !id ? 'Sin identificación' : (!/^\d+$/.test(id) ? 'Identificación no numérica' : (id.length < 5 || id.length > 10 ? 'Identificación de longitud atípica' : ''));
+  const normName = v => norm(v).replace(/[^A-ZÑ ]/g, '').replace(/\s+/g, ' ').trim();
+
+  /* --- Detección de encabezado y roles de columna --- */
+  const HDR = {
+    telefono: /(TEL|CEL|MOVIL|PHONE|FIJO|CONTACTO|WHATS|CELULAR|NUMERO)/,
+    id: /(IDENT|CEDULA|DOCUM|^DOC|NIT|^CC$|^ID$|NRO_?DOC|NUM_?DOC)/,
+    nombre: /(NOMBRE|NAME|CLIENTE|TITULAR|APELLIDO|RAZON)/,
+    ciudad: /(CIUDAD|MUNICIPIO|CITY|POBLACION|LOCALIDAD)/,
+    departamento: /(DEPARTAMENTO|DEPTO|ESTADO|PROVINCIA|REGION)/,
+    email: /(MAIL|CORREO)/,
+  };
+  function detectHeader(rows) {
+    const r0 = (rows[0] || []).map(v => v == null ? '' : String(v));
+    const filled = r0.filter(v => v.trim());
+    if (!filled.length) return false;
+    const kw = filled.filter(v => Object.values(HDR).some(re => re.test(norm(v)))).length;
+    const digitish = filled.filter(v => /^\+?[\d\s\-().]{5,}$/.test(v.trim())).length;
+    const emails = filled.filter(v => v.includes('@')).length;
+    return kw >= 1 && digitish === 0 && emails === 0;
+  }
+  function detectRoles(rows, hasHeader, country) {
+    const head = hasHeader ? rows[0] : [];
+    const body = rows.slice(hasHeader ? 1 : 0, (hasHeader ? 1 : 0) + 400);
+    const ncol = Math.max(0, ...rows.slice(0, 400).map(r => r.length));
+    const stats = [];
+    for (let c = 0; c < ncol; c++) {
+      let n = 0, ph = 0, legacy = 0, idl = 0, len7 = 0, dn = 0, em = 0, nm = 0, ci = 0, dp = 0;
+      for (const r of body) {
+        const v = r[c]; if (v == null || isPlaceholder(v)) continue; n++;
+        const s = String(v).trim();
+        if (s.includes('@')) { em++; continue; }
+        const parts = splitPhoneCell(v);
+        if (parts.length) {
+          const a = analyzePhone(parts[0], { country, dep: null });
+          if (STATUS[a.status] && STATUS[a.status].ok) ph++;
+          else if (a.status === 'FIJO_ANTIGUO_SIN_CIUDAD') legacy++;
+        }
+        const dg = s.replace(/[.\s]/g, '');
+        if (/^\d{5,10}$/.test(dg)) idl++;
+        if (/^\d+$/.test(dg)) { dn++; if (/^[2-8]\d{6}$/.test(dg)) len7++; }
+        if (/^[A-Za-zÁÉÍÓÚÑáéíóúñü.' ]+$/.test(s) && s.trim().split(/\s+/).length >= 2) nm++;
+        if (resolveCity(s, null, []).mun) ci++;
+        if (matchDep(s)) dp++;
+      }
+      const h = head[c] == null ? '' : norm(head[c]);
+      stats.push({ c, n, ph: n ? ph / n : 0, legacy: n ? legacy / n : 0, idl: n ? idl / n : 0, em: n ? em / n : 0, nm: n ? nm / n : 0, ci: n ? ci / n : 0, dp: n ? dp / n : 0, len7: dn ? len7 / dn : 0, h });
+    }
+    const roles = stats.map(() => 'ignorar');
+    const set = (c, r) => { roles[c] = r; };
+    // 1) por encabezado
+    if (hasHeader) for (const s of stats) {
+      if (!s.h) continue;
+      if (HDR.email.test(s.h)) set(s.c, 'email');
+      else if (HDR.id.test(s.h)) set(s.c, 'id');
+      else if (HDR.telefono.test(s.h) && !HDR.id.test(s.h)) set(s.c, 'telefono');
+      else if (HDR.ciudad.test(s.h)) set(s.c, 'ciudad');
+      else if (HDR.departamento.test(s.h)) set(s.c, 'departamento');
+      else if (HDR.nombre.test(s.h)) set(s.c, 'nombre');
+    }
+    const has = r => roles.includes(r);
+    // 2) por contenido
+    for (const s of stats) {
+      if (roles[s.c] !== 'ignorar' || !s.n) continue;
+      if (s.em >= 0.5 && !has('email')) set(s.c, 'email');
+      else if (s.ph >= 0.4 || s.len7 >= 0.8 || (s.ph + s.legacy >= 0.5 && s.len7 >= 0.5)) set(s.c, 'telefono');
+    }
+    if (!has('id')) { const cand = stats.filter(s => roles[s.c] === 'ignorar' && s.idl >= 0.7 && s.ph < 0.3).sort((a, b) => a.c - b.c)[0]; if (cand) set(cand.c, 'id'); }
+    if (!has('ciudad')) { const cand = stats.filter(s => roles[s.c] === 'ignorar' && s.ci >= 0.5).sort((a, b) => b.ci - a.ci)[0]; if (cand) set(cand.c, 'ciudad'); }
+    if (!has('departamento')) { const cand = stats.filter(s => roles[s.c] === 'ignorar' && s.dp >= 0.6).sort((a, b) => b.dp - a.dp)[0]; if (cand) set(cand.c, 'departamento'); }
+    if (!has('nombre')) { const cand = stats.filter(s => roles[s.c] === 'ignorar' && s.nm >= 0.6).sort((a, b) => b.nm - a.nm)[0]; if (cand) set(cand.c, 'nombre'); }
+    // Columnas fijas de 7 dígitos que quedaron como teléfono pero son la cédula
+    return { roles, stats };
+  }
+
+  /* --- Escaneo de datos sensibles / procedencia --- */
+  const luhn = d => { let s = 0, alt = false; for (let i = d.length - 1; i >= 0; i--) { let n = +d[i]; if (alt) { n *= 2; if (n > 9) n -= 9; } s += n; alt = !alt; } return s % 10 === 0; };
+  const SENS = [
+    { key: 'TARJETA_PRODUCTO', label: 'Producto financiero por persona (tipo de tarjeta de crédito)', sev: 'alta', cell: s => /\b(VISA|MASTER|MASTERCARD|AMEX|AMERICAN EXPRESS|DINERS)\b/.test(s), min: 0.3 },
+    { key: 'PAN', label: 'Posible número de tarjeta (PAN válido por Luhn) — alcance PCI DSS', sev: 'critica', cell: (s, raw) => { const d = String(raw).replace(/[\s-]/g, ''); return /^[3-6]\d{12,18}$/.test(d) && luhn(d); }, min: 0.05 },
+    { key: 'ICCID', label: 'Serial de SIM (ICCID) — dato de operador móvil', sev: 'alta', cell: (s, raw) => /89\d{17,18}/.test(String(raw)), min: 0.01 },
+    { key: 'TELCO', label: 'Datos de operación de telecomunicaciones (portabilidad, cuotas, entregas)', sev: 'alta', cell: s => /(PORTAR|PORTABILIDAD|SERIAL PUENTE|NUMERO DE ENTREGA|FECHA_?ENTREGA|_CUOTAS|PLAN POSPAGO|PREPAGO)/.test(s), min: 0.01 },
+    { key: 'FINANCIERO', label: 'Datos financieros (cupo, saldo, mora, ingresos)', sev: 'alta', head: /(CUPO|SALDO|MORA|DEUDA|INGRESO|SALARIO|SCORE|DATACREDITO|CIFIN|BANCO)/, cell: s => /\b(CUPO|SALDO EN MORA|DIAS DE MORA)\b/.test(s), min: 0.1 },
+    { key: 'SALUD', label: 'Datos sensibles de salud', sev: 'critica', head: /(EPS|DIAGNOST|ENFERMEDAD|PATOLOG|SALUD)/, cell: s => /\b(DIAGNOSTICO|CANCER|VIH|DIABETES|ONCOLOG)\b/.test(s), min: 0.02 },
+    { key: 'FECHA_NAC', label: 'Fecha de nacimiento / edad', sev: 'media', head: /(NACIMIENTO|F_?NAC|EDAD|BIRTH)/, cell: () => false, min: 1 },
+  ];
+  function scanSensitive(files) {
+    const out = [];
+    for (const f of files) {
+      const body = f.rows.slice(f.hasHeader ? 1 : 0);
+      const head = f.hasHeader ? f.rows[0] : [];
+      const ncol = Math.max(0, ...f.rows.map(r => r.length));
+      for (const rule of SENS) {
+        for (let c = 0; c < ncol; c++) {
+          const h = head[c] == null ? '' : norm(head[c]);
+          let hit = 0, n = 0;
+          for (const r of body) { const v = r[c]; if (v == null || String(v).trim() === '') continue; n++; if (rule.cell(norm(v), v)) hit++; }
+          const byHead = rule.head && h && rule.head.test(h);
+          if ((n && hit / n >= rule.min && hit > 0) || byHead) out.push({ file: f.name, col: colName(f, c), key: rule.key, label: rule.label, sev: rule.sev, hits: hit, n });
+        }
+      }
+    }
+    return out;
+  }
+  const colLetter = c => { let s = ''; c++; while (c) { const m = (c - 1) % 26; s = String.fromCharCode(65 + m) + s; c = Math.floor((c - 1) / 26); } return s; };
+  const colName = (f, c) => { const h = f.hasHeader && f.rows[0] && f.rows[0][c] != null && String(f.rows[0][c]).trim() ? String(f.rows[0][c]).trim() : ''; return 'Col ' + colLetter(c) + (h ? ' · ' + h : ''); };
+
+  /* --- Extracción de llaves para bases anteriores / exclusión --- */
+  function extractKeys(file, country) {
+    const phones = new Set(), ids = new Set(), emails = new Set();
+    const body = file.rows.slice(file.hasHeader ? 1 : 0);
+    file.roles.forEach((role, c) => {
+      if (!['telefono', 'id', 'email'].includes(role)) return;
+      for (const r of body) {
+        const v = r[c]; if (v == null) continue;
+        if (role === 'telefono') for (const part of splitPhoneCell(v)) { const a = analyzePhone(part, { country, dep: null }); if (a.e164) phones.add(a.e164); else if (a.national) phones.add('NAT:' + a.national); }
+        if (role === 'id') { const id = normId(v); if (id) ids.add(id); }
+        if (role === 'email') { const e = analyzeEmail(v); if (e.status !== 'SIN_DATO') emails.add(e.value); }
+      }
+    });
+    return { phones, ids, emails, name: file.name };
+  }
+
+  /* --- Proceso principal --- */
+  function processLeads(files, prevKeys, exclKeys, cfg) {
+    const country = cfg.country || 'CO', zone = cfg.zoneDeps || [];
+    const leads = []; let seq = 0;
+    for (const f of files) {
+      const body = f.rows.slice(f.hasHeader ? 1 : 0);
+      const roleCols = r => f.roles.map((x, i) => x === r ? i : -1).filter(i => i >= 0);
+      const cId = roleCols('id'), cName = roleCols('nombre'), cCity = roleCols('ciudad'), cDep = roleCols('departamento'), cTel = roleCols('telefono'), cMail = roleCols('email');
+      body.forEach((r, i) => {
+        if (!r || r.every(v => v == null || String(v).trim() === '')) return;
+        const get = cols => cols.map(c => r[c]).find(v => v != null && !isPlaceholder(v));
+        const L = { lo: ++seq, file: f.name, row: i + 1 + (f.hasHeader ? 1 : 0), obs: [] };
+        L.idRaw = get(cId) ?? ''; L.id = normId(L.idRaw);
+        L.name = String(cName.map(c => r[c]).filter(v => v != null && !isPlaceholder(v)).join(' ')).trim();
+        L.cityRaw = String(get(cCity) ?? '').trim(); const depRaw = get(cDep);
+        L.geo = resolveCity(L.cityRaw, depRaw, zone);
+        L.inZone = !!(L.geo.dep && zone.includes(L.geo.dep));
+        const ctx = { country, dep: L.geo.dep };
+        const seen = new Map(); L.badPhones = []; let rawCount = 0, dupIn = 0;
+        for (const c of cTel) for (const part of splitPhoneCell(r[c])) {
+          const a = analyzePhone(part, ctx); if (a.status === 'VACIO') continue; rawCount++;
+          a.col = colName(f, c);
+          if (a.e164 && STATUS[a.status].ok) { if (seen.has(a.e164)) { dupIn++; continue; } seen.set(a.e164, a); }
+          else L.badPhones.push(a);
+        }
+        L.phones = [...seen.values()].sort((a, b) => rank(a) - rank(b));
+        L.rawPhoneCount = rawCount; L.dupInRow = dupIn;
+        const em = analyzeEmail(get(cMail)); L.email = em.value; L.emailStatus = em.status;
+        if (!rawCount) L.obs.push('Registro sin ningún teléfono');
+        for (const b of L.badPhones) L.obs.push(`Teléfono ${b.raw} (${b.col}): ${STATUS[b.status].label}`);
+        for (const p of L.phones) if (p.status === 'FIJO_CONVERTIDO') L.obs.push(`Fijo ${p.raw} → ${p.national} (indicativo 60X asumido por la ciudad)`);
+        if (dupIn) L.obs.push(`Mismo número repetido en varias columnas del registro`);
+        const io = idObs(L.id); if (io) L.obs.push(io);
+        if (!L.name || normName(L.name).split(' ').length < 2) L.obs.push('Nombre incompleto o ausente');
+        if (em.status === 'INVALIDO') L.obs.push(`Correo con formato inválido: ${em.value}`);
+        if (em.status === 'DOMINIO_SOSPECHOSO') L.obs.push(`Correo con dominio posiblemente mal escrito: ${em.value}`);
+        if (L.geo.status === 'NO_RECONOCIDO') L.obs.push(`Ciudad no reconocida: ${L.cityRaw}`);
+        if (L.geo.status === 'AMBIGUO') L.obs.push(`Ciudad ambigua (${L.cityRaw}); se asumió ${L.geo.mun} - ${depDisplay[L.geo.dep]}`);
+        if (L.geo.dep && zone.length && !L.inZone) L.obs.push(`Fuera de la zona objetivo (${depDisplay[L.geo.dep]})`);
+        leads.push(L);
+      });
+    }
+    // Duplicados internos
+    const byId = new Map(), byPhone = new Map(), byNameCity = new Map();
+    for (const L of leads) {
+      L.dupOf = null; L.reasons = [];
+      if (L.id) { if (byId.has(L.id)) L.dupOf = { by: 'identificación', lo: byId.get(L.id).lo }; else byId.set(L.id, L); }
+      if (!L.dupOf && !L.id && L.name) { const k = normName(L.name) + '|' + (L.phones[0] ? L.phones[0].e164 : ''); if (byNameCity.has(k)) L.dupOf = { by: 'nombre y teléfono', lo: byNameCity.get(k).lo }; else byNameCity.set(k, L); }
+    }
+    for (const L of leads) {
+      if (L.dupOf) continue;
+      for (const p of L.phones) { if (!byPhone.has(p.e164)) byPhone.set(p.e164, []); byPhone.get(p.e164).push(L); }
+    }
+    for (const [ph, arr] of byPhone) if (arr.length > 1) {
+      const allSame = arr.every(x => x.name && normName(x.name) === normName(arr[0].name));
+      if (allSame) { arr.slice(1).forEach(x => { if (!x.dupOf) x.dupOf = { by: 'teléfono y nombre', lo: arr[0].lo }; }); }
+      else arr.forEach(x => { x.sharedPhone = (x.sharedPhone || 0) + 1; x.obs.push(`Teléfono ${ph} compartido con ${arr.length - 1} registro(s) de otra persona`); });
+    }
+    // Bases anteriores y exclusiones
+    const hit = (L, keys) => {
+      for (const k of keys) {
+        if (L.id && k.ids.has(L.id)) return { base: k.name, by: 'identificación' };
+        for (const p of L.phones) if (k.phones.has(p.e164)) return { base: k.name, by: 'teléfono ' + displayPhone(p, country) };
+        if (L.email && k.emails.has(L.email)) return { base: k.name, by: 'correo' };
+      }
+      return null;
+    };
+    for (const L of leads) {
+      L.prev = hit(L, prevKeys);
+      L.excl = null;
+      for (const k of exclKeys) { for (const p of L.phones) if (k.phones.has(p.e164)) { L.excl = { base: k.name, by: displayPhone(p, country) }; break; } if (!L.excl && L.id && k.ids.has(L.id)) L.excl = { base: k.name, by: 'identificación' }; if (L.excl) break; }
+      const valid = L.phones.length > 0;
+      if (L.dupOf) { L.estado = 'DUPLICADO'; L.reasons.push(`Duplicado por ${L.dupOf.by} del registro LO-${L.dupOf.lo}`); }
+      else if (L.excl) { L.estado = 'EXCLUIDO'; L.reasons.push(`En lista de exclusión ${L.excl.base} (${L.excl.by})`); }
+      else if (!valid) { L.estado = 'SIN_TELEFONO_VALIDO'; L.reasons.push('No tiene ningún teléfono válido'); }
+      else if (L.prev) { L.estado = 'YA_EN_BASE_ANTERIOR'; L.reasons.push(`Ya existe en ${L.prev.base} por ${L.prev.by}`); }
+      else L.estado = 'APTO';
+      L.score = score(L); L.grade = L.estado === 'APTO' || L.estado === 'YA_EN_BASE_ANTERIOR' ? (L.score >= 75 ? 'A' : L.score >= 50 ? 'B' : 'C') : '-';
+    }
+    return leads;
+  }
+  const rank = p => ({ VALIDO_MOVIL: 0, VALIDO_FIJO_O_MOVIL: 1, VALIDO_OTRO: 2, VALIDO_FIJO: 3, FIJO_CONVERTIDO: 4 }[p.status] ?? 9);
+  function score(L) {
+    if (!L.phones.length) return 0;
+    let s = 0;
+    const mob = L.phones.some(p => ['VALIDO_MOVIL', 'VALIDO_FIJO_O_MOVIL'].includes(p.status));
+    s += mob ? 45 : 25;
+    if (L.phones.length >= 2) s += 15;
+    if (L.phones.some(p => ['VALIDO_FIJO', 'FIJO_CONVERTIDO'].includes(p.status)) && mob) s += 5;
+    if (L.emailStatus === 'VALIDO') s += 10;
+    if (L.id && !idObs(L.id)) s += 10;
+    if (L.name && normName(L.name).split(' ').length >= 2) s += 5;
+    if (L.inZone) s += 10;
+    if (L.badPhones.length) s -= 5;
+    if (L.sharedPhone) s -= 20;
+    if (!mob && L.phones.every(p => p.status === 'FIJO_CONVERTIDO')) s -= 10;
+    return Math.max(0, Math.min(100, s));
+  }
+  return { norm, isPlaceholder, resolveCity, analyzePhone, splitPhoneCell, displayPhone, analyzeEmail, normId, detectHeader, detectRoles, scanSensitive, extractKeys, processLeads, STATUS, depDisplay, IND, colName, colLetter, depList: () => [...depSet].sort() };
+})();
+if (typeof module !== 'undefined') module.exports = LO;
+/* ===================== APP ===================== */
+(() => {
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = n => (n ?? 0).toLocaleString('es-CO');
+const pct = (a, b) => b ? (100 * a / b).toFixed(1).replace('.', ',') + ' %' : '—';
+const nowStr = () => { const d = new Date(), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; };
+const stamp = () => nowStr().replace(/[-: ]/g, '').slice(0, 12);
+function toast(msg, ms = 3500) { const t = $('#toast'); t.textContent = msg; t.classList.remove('hidden'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.add('hidden'), ms); }
+
+if (typeof XLSX === 'undefined' || typeof libphonenumber === 'undefined') {
+  document.querySelector('main').insertAdjacentHTML('afterbegin', '<div class="alert bad"><h3>No se cargaron las librerías</h3>La página necesita acceso a cdnjs.cloudflare.com y cdn.jsdelivr.net para leer Excel y validar teléfonos. Revise la conexión o el filtro de navegación y recargue.</div>');
+  return;
+}
+
+const ROLE_OPTS = [['telefono', 'Teléfono'], ['id', 'Identificación'], ['nombre', 'Nombre'], ['ciudad', 'Ciudad / municipio'], ['departamento', 'Departamento'], ['email', 'Correo'], ['ignorar', 'No usar']];
+const COUNTRIES = [['CO', 'Colombia (+57)'], ['PA', 'Panamá (+507)'], ['EC', 'Ecuador (+593)'], ['CL', 'Chile (+56)'], ['MX', 'México (+52)'], ['US', 'Estados Unidos (+1)'], ['CA', 'Canadá (+1)'], ['ES', 'España (+34)'], ['HN', 'Honduras (+504)'], ['IT', 'Italia (+39)'], ['FR', 'Francia (+33)'], ['DE', 'Alemania (+49)'], ['GB', 'Reino Unido (+44)'], ['PT', 'Portugal (+351)']];
+const DEFAULT_ZONE = ['RISARALDA', 'QUINDIO', 'CALDAS', 'VALLE DEL CAUCA'];
+const ESTADOS = { APTO: 'Apto para llamar', YA_EN_BASE_ANTERIOR: 'Ya existe en base anterior', DUPLICADO: 'Duplicado interno', EXCLUIDO: 'En lista de exclusión', SIN_TELEFONO_VALIDO: 'Sin teléfono válido' };
+const TIPIF = [
+  ['CONTACTO_TITULAR', 'Contactado · titular', 'titular'],
+  ['CONTACTO_TERCERO', 'Contactado · tercero que conoce al titular', 'tercero'],
+  ['NO_CONTESTA', 'No contesta', ''],
+  ['BUZON', 'Buzón de voz', ''],
+  ['OCUPADO', 'Ocupado', ''],
+  ['APAGADO', 'Apagado / fuera de servicio', ''],
+  ['NO_EXISTE', 'Número no existe / errado', 'errado'],
+  ['EQUIVOCADO', 'Número equivocado (no es el titular)', 'errado'],
+  ['VOLVER', 'Pide volver a llamar', 'titular'],
+];
+const RESULT = [
+  ['INTERESADO', 'Interesado · agendar asesor', 'interes'],
+  ['VENTA', 'Venta / afiliación', 'interes'],
+  ['NO_INTERESADO', 'No interesado', ''],
+  ['YA_TIENE_PREVISION', 'Ya tiene previsión con otra empresa', ''],
+  ['YA_ES_CLIENTE', 'Ya es afiliado de La Ofrenda', ''],
+  ['NO_CONTACTAR', 'Solicita no ser contactado', 'nocontact'],
+  ['RECLAMA_ORIGEN', 'Pregunta o reclama por el origen de sus datos', 'origen'],
+];
+const tipLabel = k => (TIPIF.find(t => t[0] === k) || [k, k])[1];
+const resLabel = k => (RESULT.find(t => t[0] === k) || [k, k])[1];
+const tipKind = k => (TIPIF.find(t => t[0] === k) || [])[2] || '';
+const resKind = k => (RESULT.find(t => t[0] === k) || [])[2] || '';
+
+const S = { files: { new: [], prev: [], excl: [] }, cfg: { country: 'CO', zone: [...DEFAULT_ZONE] }, leads: null, alerts: [], gest: [], dirty: 0, g: { page: 0, per: 25 } };
+
+/* ---------- Pestañas ---------- */
+function showTab(which) {
+  $('#t-dep').setAttribute('aria-selected', which === 'dep'); $('#t-ges').setAttribute('aria-selected', which === 'ges');
+  $('#v-dep').classList.toggle('hidden', which !== 'dep'); $('#v-ges').classList.toggle('hidden', which !== 'ges');
+  if (which === 'ges') renderGest();
+}
+$('#t-dep').onclick = () => showTab('dep'); $('#t-ges').onclick = () => showTab('ges');
+
+/* ---------- Configuración ---------- */
+$('#country').innerHTML = COUNTRIES.map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+$('#country').onchange = e => { S.cfg.country = e.target.value; S.files.new.concat(S.files.prev, S.files.excl).forEach(f => redetect(f)); renderMaps(); };
+function renderZone() {
+  const all = LO.depList();
+  const chip = d => `<span class="chip" role="button" tabindex="0" aria-pressed="${S.cfg.zone.includes(d)}" data-d="${esc(d)}">${esc(LO.depDisplay[d] || d)}</span>`;
+  $('#zone').innerHTML = S.cfg.zone.map(chip).join('');
+  $('#zone-more').innerHTML = all.filter(d => !S.cfg.zone.includes(d)).map(chip).join('');
+  $$('.chip').forEach(c => { const t = () => { const d = c.dataset.d; S.cfg.zone = S.cfg.zone.includes(d) ? S.cfg.zone.filter(x => x !== d) : [...S.cfg.zone, d]; renderZone(); }; c.onclick = t; c.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); t(); } }; });
+}
+renderZone();
+
+/* ---------- Carga de archivos ---------- */
+async function readFile(file) {
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, { type: 'array', cellDates: true, dense: false });
+  return { name: file.name.replace(/\.(xlsx|xls|csv)$/i, ''), fullName: file.name, wb };
+}
+function loadSheet(f, sheetName) {
+  f.sheet = sheetName;
+  const ws = f.wb.Sheets[sheetName];
+  f.rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null, blankrows: false });
+  f.hasHeader = LO.detectHeader(f.rows);
+  redetect(f, true);
+}
+function redetect(f, header) {
+  const d = LO.detectRoles(f.rows, f.hasHeader, S.cfg.country);
+  f.roles = d.roles;
+  const ncol = f.roles.length;
+  if (f.kind !== 'new') f.roles = f.roles.map(r => ['telefono', 'id', 'email'].includes(r) ? r : 'ignorar');
+}
+$$('.drop').forEach(z => {
+  const kind = z.dataset.kind, input = z.querySelector('input');
+  const add = async list => {
+    for (const file of list) {
+      try {
+        const f = await readFile(file); f.kind = kind;
+        const sheet = f.wb.SheetNames.find(n => { const r = XLSX.utils.sheet_to_json(f.wb.Sheets[n], { header: 1, blankrows: false }); return r.length > 0; }) || f.wb.SheetNames[0];
+        // Si es un archivo de gestión exportado por esta herramienta, usar su hoja de leads
+        loadSheet(f, f.wb.SheetNames.includes('Leads_gestion') ? 'Leads_gestion' : sheet);
+        S.files[kind].push(f);
+      } catch (e) { toast('No se pudo leer ' + file.name + ': ' + e.message, 6000); }
+    }
+    renderFiles(); renderMaps();
+  };
+  input.onchange = e => { add([...e.target.files]); e.target.value = ''; };
+  z.ondragover = e => { e.preventDefault(); z.classList.add('over'); };
+  z.ondragleave = () => z.classList.remove('over');
+  z.ondrop = e => { e.preventDefault(); z.classList.remove('over'); add([...e.dataTransfer.files]); };
+});
+function renderFiles() {
+  $$('.drop').forEach(z => {
+    const kind = z.dataset.kind;
+    z.querySelector('.files').innerHTML = S.files[kind].map((f, i) => `<span>${esc(f.fullName)} · ${fmt(f.rows.length - (f.hasHeader ? 1 : 0))} filas <button aria-label="Quitar" data-i="${i}">✕</button></span>`).join('');
+    z.querySelectorAll('.files button').forEach(b => b.onclick = () => { S.files[kind].splice(+b.dataset.i, 1); renderFiles(); renderMaps(); });
+  });
+  $('#go').classList.toggle('hidden', !S.files.new.length);
+}
+
+/* ---------- Mapeo de columnas ---------- */
+function renderMaps() {
+  const all = [...S.files.new, ...S.files.prev, ...S.files.excl];
+  if (!all.length) { $('#maps').innerHTML = ''; return; }
+  const kindName = { new: 'Base a evaluar', prev: 'Base anterior', excl: 'Exclusión' };
+  $('#maps').innerHTML = `<h2 style="margin-bottom:4px">Columnas identificadas</h2><p class="lead-in" style="margin-bottom:12px">Revise que cada columna tenga el uso correcto. Para bases anteriores y exclusiones solo importan teléfono, identificación y correo.</p>` +
+    all.map((f, fi) => {
+      const ncol = Math.max(0, ...f.rows.slice(0, 300).map(r => r.length));
+      const body = f.rows.slice(f.hasHeader ? 1 : 0);
+      const opts = f.kind === 'new' ? ROLE_OPTS : ROLE_OPTS.filter(o => ['telefono', 'id', 'email', 'ignorar'].includes(o[0]));
+      const rowsHtml = [...Array(ncol).keys()].map(c => {
+        const ex = []; for (const r of body) { const v = r[c]; if (v != null && String(v).trim() !== '' && !ex.includes(String(v))) ex.push(String(v)); if (ex.length >= 3) break; }
+        const role = f.roles[c] || 'ignorar';
+        return `<tr><td>${esc(LO.colName(f, c))}</td><td class="ex" title="${esc(ex.join(' | '))}">${esc(ex.join(' | ') || '(vacía)')}</td><td><select data-f="${fi}" data-c="${c}">${opts.map(([k, v]) => `<option value="${k}" ${k === role ? 'selected' : ''}>${v}</option>`).join('')}</select></td></tr>`;
+      }).join('');
+      const nPh = f.roles.filter(r => r === 'telefono').length;
+      return `<div class="card"><div class="card-h"><div><h3>${esc(f.fullName)}</h3><div class="meta">${kindName[f.kind]} · ${fmt(body.length)} registros · ${nPh} columna(s) de teléfono</div></div>
+        <div class="row-actions">${f.wb.SheetNames.length > 1 ? `<label class="meta">Hoja <select data-sheet="${fi}">${f.wb.SheetNames.map(n => `<option ${n === f.sheet ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>` : ''}
+        <label class="meta"><input type="checkbox" data-hdr="${fi}" ${f.hasHeader ? 'checked' : ''}> La primera fila es encabezado</label></div></div>
+        ${nPh ? '' : '<div class="alert warn" style="margin-bottom:8px">No se identificó ninguna columna de teléfono. Asigne al menos una.</div>'}
+        <div class="scroll"><table><thead><tr><th>Columna</th><th>Ejemplos</th><th>Uso</th></tr></thead><tbody>${rowsHtml}</tbody></table></div></div>`;
+    }).join('');
+  $$('#maps select[data-c]').forEach(s => s.onchange = () => { const f = all[+s.dataset.f]; f.roles[+s.dataset.c] = s.value; renderMaps(); });
+  $$('#maps select[data-sheet]').forEach(s => s.onchange = () => { loadSheet(all[+s.dataset.sheet], s.value); renderFiles(); renderMaps(); });
+  $$('#maps input[data-hdr]').forEach(s => s.onchange = () => { const f = all[+s.dataset.hdr]; f.hasHeader = s.checked; redetect(f); renderFiles(); renderMaps(); });
+}
+
+/* ---------- Proceso ---------- */
+$('#process').onclick = async () => {
+  if (S.gest.some(g => g.g.intentos > 0) && !confirm('Ya hay gestión registrada en esta sesión. Si vuelve a depurar, se reinicia la gestión. ¿Continuar?')) return;
+  if (!S.files.new.some(f => f.roles.includes('telefono'))) { toast('Asigne al menos una columna de teléfono.'); return; }
+  $('#process').disabled = true; $('#prog').classList.remove('hidden'); $('#prog i').style.width = '15%'; $('#process-msg').textContent = 'Procesando…';
+  await new Promise(r => setTimeout(r, 30));
+  try {
+    const prev = S.files.prev.map(f => LO.extractKeys(f, S.cfg.country));
+    $('#prog i').style.width = '35%'; await new Promise(r => setTimeout(r, 10));
+    const excl = S.files.excl.map(f => LO.extractKeys(f, S.cfg.country));
+    $('#prog i').style.width = '50%'; await new Promise(r => setTimeout(r, 10));
+    const t0 = performance.now();
+    S.leads = LO.processLeads(S.files.new, prev, excl, { country: S.cfg.country, zoneDeps: S.cfg.zone });
+    S.alerts = LO.scanSensitive(S.files.new);
+    S.processedAt = nowStr();
+    $('#prog i').style.width = '100%';
+    S.gest = S.leads.filter(L => L.estado === 'APTO').map(toGest);
+    S.dirty = 0; S.g.page = 0;
+    renderResults();
+    $('#process-msg').textContent = `${fmt(S.leads.length)} registros en ${((performance.now() - t0) / 1000).toFixed(1)} s`;
+  } catch (e) { console.error(e); toast('Error al procesar: ' + e.message, 8000); $('#process-msg').textContent = ''; }
+  $('#process').disabled = false; setTimeout(() => $('#prog').classList.add('hidden'), 600);
+};
+
+function counts(arr, key) { const m = {}; arr.forEach(x => { const k = typeof key === 'function' ? key(x) : x[key]; m[k] = (m[k] || 0) + 1; }); return m; }
+
+function renderResults() {
+  const L = S.leads, n = L.length; const el = $('#results'); el.classList.remove('hidden');
+  const est = counts(L, 'estado');
+  const phones = L.flatMap(x => [...x.phones, ...x.badPhones]);
+  const ph = counts(phones, 'status');
+  const anyMobile = L.filter(x => x.phones.some(p => ['VALIDO_MOVIL', 'VALIDO_FIJO_O_MOVIL'].includes(p.status))).length;
+  const aptos = est.APTO || 0;
+  const grades = counts(L.filter(x => x.estado === 'APTO'), 'grade');
+  const sev = { critica: 0, alta: 1, media: 2 };
+  const alerts = [...S.alerts].sort((a, b) => sev[a.sev] - sev[b.sev]);
+  // Geografía
+  const geo = {};
+  L.forEach(x => { const d = x.geo.dep ? LO.depDisplay[x.geo.dep] : '(sin departamento)'; const m = x.geo.mun || (x.cityRaw ? `${x.cityRaw} (no reconocida)` : '(sin ciudad)'); const k = d + '||' + m; geo[k] = geo[k] || { d, m, n: 0, ok: 0, zone: x.inZone }; geo[k].n++; if (x.estado === 'APTO') geo[k].ok++; });
+  const geoRows = Object.values(geo).sort((a, b) => a.d.localeCompare(b.d) || b.n - a.n);
+  S.geoRows = geoRows;
+
+  el.innerHTML = `
+  <h2 style="margin:6px 0 12px">Resultado de la depuración</h2>
+  ${alerts.length ? `<div class="alert bad"><h3>Alerta de procedencia: la base contiene datos que no son de contacto</h3>
+    Columnas que sugieren que la información proviene de sistemas de terceros (banco, emisor de tarjetas u operador móvil). Antes de usar o pagar la base, exija al proveedor la evidencia de autorización de los titulares para que sus datos sean entregados a La Ofrenda con fines comerciales.
+    <ul>${alerts.map(a => `<li><b>${esc(a.label)}</b> — ${esc(a.file)}, ${esc(a.col)} (${fmt(a.hits)} de ${fmt(a.n)} filas)</li>`).join('')}</ul>
+    <div style="margin-top:6px">Estas columnas no se incluyen en el archivo para el call center.</div></div>` : `<div class="alert ok">No se detectaron columnas con datos financieros, de salud ni de operador en la base.</div>`}
+  <section><div class="kpis">
+    <div class="kpi"><b>${fmt(n)}</b><span>Registros recibidos</span></div>
+    <div class="kpi hl"><b>${fmt(aptos)}</b><span>Aptos para llamar</span><em>${pct(aptos, n)} del total</em></div>
+    <div class="kpi"><b>${pct(anyMobile, n)}</b><span>Con al menos un móvil válido</span><em>Contactabilidad técnica máxima</em></div>
+    <div class="kpi"><b>${fmt(est.DUPLICADO || 0)}</b><span>Duplicados internos</span><em>${pct(est.DUPLICADO || 0, n)}</em></div>
+    <div class="kpi"><b>${fmt(est.YA_EN_BASE_ANTERIOR || 0)}</b><span>Ya en bases anteriores</span><em>${S.files.prev.length ? pct(est.YA_EN_BASE_ANTERIOR || 0, n) : 'No se cargaron bases'}</em></div>
+    <div class="kpi"><b>${fmt(est.SIN_TELEFONO_VALIDO || 0)}</b><span>Sin teléfono válido</span><em>${pct(est.SIN_TELEFONO_VALIDO || 0, n)}</em></div>
+    <div class="kpi"><b>${fmt(est.EXCLUIDO || 0)}</b><span>En lista de exclusión</span><em>${S.files.excl.length ? pct(est.EXCLUIDO || 0, n) : 'No se cargó lista'}</em></div>
+  </div></section>
+  <section class="two">
+    <div class="card"><h3 style="margin-bottom:8px">Calidad de los números (${fmt(phones.length)} analizados)</h3>
+      <div class="scroll"><table><thead><tr><th>Resultado</th><th class="num">Cantidad</th><th class="num">%</th><th></th></tr></thead><tbody>
+      ${Object.entries(ph).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${LO.STATUS[k].ok ? '✓' : '✕'} ${esc(LO.STATUS[k].label)}</td><td class="num">${fmt(v)}</td><td class="num">${pct(v, phones.length)}</td><td><div class="bar"><i style="width:${(100 * v / phones.length).toFixed(1)}%"></i></div></td></tr>`).join('')}
+      </tbody></table></div>
+      <p class="meta" style="margin:8px 0 0">Números repetidos dentro del mismo registro se cuentan una vez. "Fijo convertido": número de 7 dígitos al que se le antepuso el indicativo 60X de la ciudad del registro; es un supuesto que se confirma llamando.</p>
+    </div>
+    <div class="card"><h3 style="margin-bottom:8px">Puntaje de calidad del dato (aptos)</h3>
+      <div class="scroll"><table><thead><tr><th>Grado</th><th>Criterio</th><th class="num">Leads</th><th class="num">%</th></tr></thead><tbody>
+      ${[['A', '≥ 75 puntos'], ['B', '50 a 74'], ['C', '< 50']].map(([g, c]) => `<tr><td><span class="g ${g}">${g}</span></td><td>${c}</td><td class="num">${fmt(grades[g] || 0)}</td><td class="num">${pct(grades[g] || 0, aptos)}</td></tr>`).join('')}
+      </tbody></table></div>
+      <details style="margin-top:8px"><summary>Cómo se calcula</summary><p class="meta" style="margin:6px 0 0">Móvil válido +45 (solo fijo +25) · segundo número válido +15 · fijo además del móvil +5 · correo válido +10 · identificación válida +10 · nombre completo +5 · dentro de la zona objetivo +10 · números descartados en el registro −5 · teléfono compartido con otra persona −20 · solo fijos convertidos −10. Es una predicción: la prueba de llamadas mide si el grado A contacta más que el C.</p></details>
+    </div>
+  </section>
+  <section class="card"><div class="card-h"><h3>Cobertura geográfica</h3><span class="meta">Zona objetivo: ${S.cfg.zone.map(d => esc(LO.depDisplay[d])).join(', ') || 'sin definir'}</span></div>
+    <div class="scroll"><table><thead><tr><th>Departamento</th><th>Ciudad / municipio</th><th class="num">Registros</th><th class="num">Aptos</th><th>Zona</th></tr></thead><tbody>
+    ${geoRows.map(r => `<tr><td>${esc(r.d)}</td><td>${esc(r.m)}</td><td class="num">${fmt(r.n)}</td><td class="num">${fmt(r.ok)}</td><td>${r.zone ? 'Dentro' : '<b>Fuera</b>'}</td></tr>`).join('')}
+    </tbody></table></div></section>
+  <section class="card"><div class="card-h"><h3>Texto para el correo de respuesta</h3><button class="btn small" id="copy-mail">Copiar</button></div>
+    <textarea id="mail-txt" readonly></textarea></section>
+  <section class="card"><div class="card-h"><h3>Registros</h3>
+    <div class="row-actions"><select id="flt-estado"><option value="">Todos los estados</option>${Object.entries(ESTADOS).map(([k, v]) => `<option value="${k}">${v} (${fmt(est[k] || 0)})</option>`).join('')}</select>
+    <select id="flt-obs"><option value="">Con o sin observaciones</option><option value="1">Solo con observaciones</option></select></div></div>
+    <div class="scroll" id="lead-table"></div></section>
+  <section class="card"><h3 style="margin-bottom:6px">Descargas</h3>
+    <p class="meta" style="margin:0 0 10px">El archivo completo es para la revisión de TIC y Comercial (incluye las hojas originales con sus observaciones). El archivo del call center lleva solo los datos necesarios para llamar.</p>
+    <div class="row-actions"><button class="btn" id="dl-full">Descargar depuración completa (.xlsx)</button><button class="btn primary" id="dl-gest">Descargar archivo para call center</button><button class="btn" id="go-gest">Gestionar aquí →</button></div>
+  </section>`;
+  $('#mail-txt').value = mailText(est, n, aptos, anyMobile, phones, ph, geoRows, alerts);
+  $('#copy-mail').onclick = () => copyText($('#mail-txt'));
+  $('#flt-estado').onchange = $('#flt-obs').onchange = renderLeadTable; renderLeadTable();
+  $('#dl-full').onclick = () => exportFull();
+  $('#dl-gest').onclick = () => exportGest();
+  $('#go-gest').onclick = () => showTab('ges');
+  updateGestTab();
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function mailText(est, n, aptos, anyMobile, phones, ph, geoRows, alerts) {
+  const bad = Object.entries(ph).filter(([k]) => !LO.STATUS[k].ok).reduce((a, [, v]) => a + v, 0);
+  const byDep = {}; geoRows.forEach(r => { (byDep[r.d] = byDep[r.d] || []).push(r); });
+  const lines = [
+    `Resultado de la revisión técnica de la base (${n} registros, ${S.files.new.map(f => f.fullName).join(', ')}):`, '',
+    `- Registros aptos para llamar: ${aptos} (${pct(aptos, n)}).`,
+    `- Duplicados internos: ${est.DUPLICADO || 0} (${pct(est.DUPLICADO || 0, n)}).`,
+    `- Duplicados contra bases anteriores: ${S.files.prev.length ? (est.YA_EN_BASE_ANTERIOR || 0) + ' (' + pct(est.YA_EN_BASE_ANTERIOR || 0, n) + ')' : 'no evaluado (no se cargaron bases anteriores)'}.`,
+    `- Registros sin ningún teléfono válido: ${est.SIN_TELEFONO_VALIDO || 0}.`,
+    `- Números analizados: ${phones.length}; con formato o rango inválido: ${bad} (${pct(bad, phones.length)}).`,
+    `- Registros con al menos un celular válido: ${pct(anyMobile, n)}. Es el techo técnico de contactabilidad; la contactabilidad real la mide la prueba del call center.`, '',
+    'Cobertura geográfica de la base recibida:',
+    ...Object.entries(byDep).map(([d, rs]) => `- ${d}: ${rs.map(r => `${r.m} (${r.n})`).join(', ')}${rs[0].zone ? '' : ' — fuera de la zona de operación'}`),
+  ];
+  if (alerts.length) lines.push('', 'Observación sobre el origen de la información:', ...[...new Set(alerts.map(a => a.label))].map(l => `- La base incluye ${l.charAt(0).toLowerCase() + l.slice(1)}.`), 'Antes de avanzar en un acuerdo, el proveedor debe acreditar la autorización de los titulares para la entrega de sus datos a La Ofrenda con fines comerciales (Ley 1581 de 2012).');
+  return lines.join('\n');
+}
+async function copyText(ta) { try { await navigator.clipboard.writeText(ta.value); toast('Texto copiado'); } catch (e) { ta.select(); try { document.execCommand('copy'); toast('Texto copiado'); } catch (_) { toast('Seleccione el texto y cópielo manualmente'); } } }
+function renderLeadTable() {
+  const fe = $('#flt-estado').value, fo = $('#flt-obs').value;
+  const rows = S.leads.filter(x => (!fe || x.estado === fe) && (!fo || x.obs.length || x.reasons.length));
+  const show = rows.slice(0, 300);
+  $('#lead-table').innerHTML = `<table><thead><tr><th>ID LO</th><th>Archivo · fila</th><th>Nombre</th><th>Ciudad</th><th>Teléfono principal</th><th>Grado</th><th>Estado</th><th>Observaciones</th></tr></thead><tbody>
+  ${show.map(x => `<tr><td>LO-${x.lo}</td><td class="meta">${esc(x.file)} · ${x.row}</td><td>${esc(x.name)}</td><td>${esc(x.geo.mun || x.cityRaw)}</td><td>${esc(LO.displayPhone(x.phones[0], S.cfg.country))}</td><td>${x.grade !== '-' ? `<span class="g ${x.grade}">${x.grade}</span>` : '—'}</td><td><span class="pill p-${x.estado}">${esc(ESTADOS[x.estado])}</span></td><td class="meta" style="min-width:260px">${esc([...x.reasons, ...x.obs].join(' · '))}</td></tr>`).join('')}
+  </tbody></table>${rows.length > 300 ? `<p class="meta">Se muestran 300 de ${fmt(rows.length)}. El Excel trae todos.</p>` : ''}`;
+}
+
+/* ---------- Modelo de gestión ---------- */
+function toGest(L) {
+  return {
+    lo: 'LO-' + L.lo, file: L.file, row: L.row, id: L.id, name: L.name, city: L.geo.mun || L.cityRaw, dep: L.geo.dep ? LO.depDisplay[L.geo.dep] : '',
+    inZone: L.inZone, score: L.score, grade: L.grade, estado: L.estado, email: L.emailStatus === 'VALIDO' ? L.email : '',
+    phones: L.phones.slice(0, 4).map(p => ({ d: LO.displayPhone(p, S.cfg.country), t: phoneType(p.status) })),
+    g: { intentos: 0, tip: '', res: '', tel: '', last: '', agent: '', obs: '', hist: '' },
+  };
+}
+const phoneType = st => ({ VALIDO_MOVIL: 'Móvil', VALIDO_FIJO: 'Fijo', FIJO_CONVERTIDO: 'Fijo (convertido)', VALIDO_FIJO_O_MOVIL: 'Fijo o móvil', VALIDO_OTRO: 'Otro' }[st] || '');
+function gState(r) {
+  const g = r.g, max = +$('#g-max').value || 3;
+  if (!g.intentos) return 'Sin llamar';
+  const k = tipKind(g.tip);
+  if (g.tip === 'CONTACTO_TITULAR' && g.res) return 'Cerrado';
+  if (k === 'errado' && r.phones.length <= 1) return 'Cerrado';
+  if (resKind(g.res) === 'nocontact') return 'Cerrado';
+  if (g.intentos >= max) return 'Cerrado';
+  return 'En gestión';
+}
+function gestRows() {
+  return S.gest.map(r => ({
+    LO_ID: r.lo, Archivo: r.file, Fila: r.row, Identificacion: r.id, Nombre: r.name, Ciudad: r.city, Departamento: r.dep, En_zona: r.inZone ? 'Sí' : 'No',
+    Tel_1: r.phones[0]?.d || '', Tipo_1: r.phones[0]?.t || '', Tel_2: r.phones[1]?.d || '', Tipo_2: r.phones[1]?.t || '', Tel_3: r.phones[2]?.d || '', Tipo_3: r.phones[2]?.t || '', Tel_4: r.phones[3]?.d || '', Tipo_4: r.phones[3]?.t || '',
+    Email: r.email, Puntaje: r.score, Grado: r.grade,
+    G_Estado: gState(r), G_Intentos: r.g.intentos, G_Ultima_tipificacion: r.g.tip ? tipLabel(r.g.tip) : '', G_Resultado: r.g.res ? resLabel(r.g.res) : '', G_Tel_contactado: r.g.tel, G_Ultimo_intento: r.g.last, G_Agente: r.g.agent, G_Observacion: r.g.obs, G_Historial: r.g.hist,
+    G_Cod_tipificacion: r.g.tip, G_Cod_resultado: r.g.res,
+  }));
+}
+function importGest(wb) {
+  const ws = wb.Sheets['Leads_gestion']; if (!ws) throw new Error('El archivo no tiene la hoja Leads_gestion. Use un archivo descargado desde esta herramienta.');
+  const data = XLSX.utils.sheet_to_json(ws, { defval: '', raw: false });
+  if (!data.length || !('LO_ID' in data[0])) throw new Error('La hoja Leads_gestion no tiene la columna LO_ID.');
+  return data.map(d => ({
+    lo: d.LO_ID, file: d.Archivo, row: d.Fila, id: d.Identificacion, name: d.Nombre, city: d.Ciudad, dep: d.Departamento, inZone: d.En_zona === 'Sí', score: +d.Puntaje || 0, grade: d.Grado || '-', email: d.Email,
+    phones: [1, 2, 3, 4].map(i => ({ d: String(d['Tel_' + i] || ''), t: d['Tipo_' + i] || '' })).filter(p => p.d),
+    g: { intentos: +d.G_Intentos || 0, tip: d.G_Cod_tipificacion || '', res: d.G_Cod_resultado || '', tel: d.G_Tel_contactado || '', last: d.G_Ultimo_intento || '', agent: d.G_Agente || '', obs: d.G_Observacion || '', hist: d.G_Historial || '' },
+  }));
+}
+$('#g-import').onchange = async e => {
+  const file = e.target.files[0]; e.target.value = ''; if (!file) return;
+  if (S.dirty && !confirm('Hay gestión sin descargar. Si carga otro archivo se reemplaza. ¿Continuar?')) return;
+  try { const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' }); S.gest = importGest(wb); S.dirty = 0; S.g.page = 0; S.gestFile = file.name; toast(`${fmt(S.gest.length)} leads cargados de ${file.name}`); updateGestTab(); renderGest(); }
+  catch (err) { toast(err.message, 7000); }
+};
+
+/* ---------- Vista de gestión ---------- */
+function updateGestTab() { $('#g-export').disabled = !S.gest.length; }
+function inWindow() {
+  const d = new Date(), day = d.getDay(), hm = d.toTimeString().slice(0, 5);
+  if (day === 0) return $('#h-su').value === 'si';
+  const [a, b] = day === 6 ? [$('#h-sa-a').value, $('#h-sa-b').value] : [$('#h-wd-a').value, $('#h-wd-b').value];
+  return hm >= a && hm < b;
+}
+function renderGest() {
+  const has = S.gest.length > 0;
+  $('#g-empty').classList.toggle('hidden', has); $('#g-main').classList.toggle('hidden', !has);
+  if (!has) return;
+  $('#g-banner').innerHTML = inWindow() ? '' : '<div class="alert warn">Fuera de la franja de contacto configurada. Puede seguir revisando, pero no se recomienda llamar ahora.</div>';
+  const cities = [...new Set(S.gest.map(r => r.city).filter(Boolean))].sort();
+  const cs = $('#g-city'), cur = cs.value; cs.innerHTML = '<option value="">Todas</option>' + cities.map(c => `<option ${c === cur ? 'selected' : ''}>${esc(c)}</option>`).join('');
+  renderGKpis(); renderGList();
+  $('#g-dirty').textContent = S.dirty ? `${S.dirty} cambio(s) sin descargar` : '';
+}
+function gKpis(rows) {
+  const ges = rows.filter(r => r.g.intentos > 0);
+  const contacted = ges.filter(r => ['titular', 'tercero'].includes(tipKind(r.g.tip)) || /CONTACTO/.test(r.g.hist));
+  const titular = ges.filter(r => r.g.tip === 'CONTACTO_TITULAR' || r.g.tip === 'VOLVER' || /CONTACTO_TITULAR/.test(r.g.hist));
+  const wrong = ges.filter(r => tipKind(r.g.tip) === 'errado');
+  const interest = titular.filter(r => resKind(r.g.res) === 'interes');
+  const origen = ges.filter(r => resKind(r.g.res) === 'origen' || /RECLAMA_ORIGEN/.test(r.g.hist));
+  const nocont = ges.filter(r => resKind(r.g.res) === 'nocontact');
+  return { n: rows.length, ges: ges.length, contacted: contacted.length, titular: titular.length, wrong: wrong.length, interest: interest.length, origen: origen.length, nocont: nocont.length, attempts: ges.reduce((a, r) => a + r.g.intentos, 0) };
+}
+function renderGKpis() {
+  const k = gKpis(S.gest);
+  $('#g-kpis').innerHTML = `
+    <div class="kpi"><b>${fmt(k.ges)} / ${fmt(k.n)}</b><span>Leads gestionados</span><em>${fmt(k.attempts)} intentos</em></div>
+    <div class="kpi hl"><b>${pct(k.contacted, k.ges)}</b><span>Contactabilidad</span><em>Contestó titular o tercero</em></div>
+    <div class="kpi"><b>${pct(k.titular, k.ges)}</b><span>Contacto efectivo</span><em>Habló con el titular</em></div>
+    <div class="kpi"><b>${pct(k.wrong, k.ges)}</b><span>Números errados</span><em>No existe o no es el titular</em></div>
+    <div class="kpi"><b>${pct(k.interest, k.titular)}</b><span>Interés</span><em>Sobre contactos efectivos</em></div>
+    <div class="kpi"><b>${fmt(k.origen)}</b><span>Reclamos por origen del dato</span><em>${fmt(k.nocont)} piden no ser contactados</em></div>`;
+  const by = (keyFn, label) => {
+    const groups = {}; S.gest.forEach(r => { const key = keyFn(r) || '—'; (groups[key] = groups[key] || []).push(r); });
+    return `<div class="card"><h3 style="margin-bottom:8px">${label}</h3><div class="scroll"><table><thead><tr><th></th><th class="num">Leads</th><th class="num">Gestionados</th><th class="num">Contactab.</th><th class="num">Efectivo</th><th class="num">Errados</th></tr></thead><tbody>
+    ${Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0])).map(([g, rs]) => { const q = gKpis(rs); return `<tr><td>${esc(g)}</td><td class="num">${fmt(q.n)}</td><td class="num">${fmt(q.ges)}</td><td class="num">${pct(q.contacted, q.ges)}</td><td class="num">${pct(q.titular, q.ges)}</td><td class="num">${pct(q.wrong, q.ges)}</td></tr>`; }).join('')}</tbody></table></div></div>`;
+  };
+  $('#g-breaks').innerHTML = by(r => r.grade, 'Por grado de calidad del dato') + by(r => r.city, 'Por ciudad');
+}
+function filteredGest() {
+  const f = $('#g-filter').value, gr = $('#g-grade').value, c = $('#g-city').value, q = LO.norm($('#g-q').value);
+  return S.gest.filter(r => {
+    const st = gState(r);
+    if (f === 'pend' && st === 'Cerrado') return false;
+    if (f === '0' && st !== 'Sin llamar') return false;
+    if (f === 'open' && st !== 'En gestión') return false;
+    if (f === 'closed' && st !== 'Cerrado') return false;
+    if (gr && r.grade !== gr) return false;
+    if (c && r.city !== c) return false;
+    if (q && !LO.norm(r.name + ' ' + r.id + ' ' + r.phones.map(p => p.d).join(' ')).includes(q)) return false;
+    return true;
+  });
+}
+function renderGList() {
+  const rows = filteredGest(), per = S.g.per, pages = Math.max(1, Math.ceil(rows.length / per));
+  if (S.g.page >= pages) S.g.page = pages - 1;
+  const show = rows.slice(S.g.page * per, S.g.page * per + per);
+  const tipOpts = '<option value="">Tipificación…</option>' + TIPIF.map(([k, l]) => `<option value="${k}">${l}</option>`).join('');
+  const resOpts = '<option value="">Resultado de la conversación…</option>' + RESULT.map(([k, l]) => `<option value="${k}">${l}</option>`).join('');
+  $('#g-list').innerHTML = show.length ? show.map(r => {
+    const i = S.gest.indexOf(r), st = gState(r);
+    return `<div class="lead ${st === 'Cerrado' ? 'closed' : ''}">
+      <div class="who"><b>${esc(r.name || '(sin nombre)')}</b> ${r.grade && r.grade !== '-' ? `<span class="g ${r.grade}" title="Grado de calidad del dato">${r.grade}</span>` : ''}
+        <div>${esc(r.lo)} · ID ${esc(r.id || '—')} · ${esc(r.city || '—')}${r.dep ? ', ' + esc(r.dep) : ''}</div>
+        <div class="tels">${r.phones.map(p => `<a class="tel" href="tel:${esc(p.d.replace(/[^\d+]/g, ''))}">${esc(p.d)} <small>${esc(p.t)}</small></a>`).join('')}</div>
+        <div class="state"><b>${st}</b>${r.g.intentos ? ` · ${r.g.intentos} intento(s) · último ${esc(r.g.last)} · ${esc(tipLabel(r.g.tip))}${r.g.res ? ' · ' + esc(resLabel(r.g.res)) : ''}` : ''}</div>
+        ${r.g.hist ? `<div class="hist">${esc(r.g.hist)}</div>` : ''}
+      </div>
+      <div class="form" data-i="${i}">
+        <select data-k="tip">${tipOpts}</select>
+        <select data-k="tel"><option value="">Número marcado…</option>${r.phones.map(p => `<option>${esc(p.d)}</option>`).join('')}</select>
+        <select data-k="res" class="full" disabled>${resOpts}</select>
+        <input type="text" data-k="obs" class="full" placeholder="Observación (opcional)" maxlength="300">
+        <div class="full row-actions"><button class="btn small" data-act="save">Registrar intento</button>${r.g.intentos ? '<button class="btn small" data-act="undo" title="Elimina el último intento registrado">Deshacer último</button>' : ''}</div>
+      </div></div>`;
+  }).join('') : '<div class="alert ok">No hay leads con este filtro.</div>';
+  $$('#g-list .form').forEach(fm => {
+    const tip = fm.querySelector('[data-k=tip]'), res = fm.querySelector('[data-k=res]'), tel = fm.querySelector('[data-k=tel]');
+    if (tel.options.length === 2) tel.selectedIndex = 1;
+    tip.onchange = () => { res.disabled = !['titular'].includes(tipKind(tip.value)); if (res.disabled) res.value = ''; };
+    fm.querySelector('[data-act=save]').onclick = () => {
+      const r = S.gest[+fm.dataset.i];
+      if (!tip.value) { toast('Seleccione la tipificación'); tip.focus(); return; }
+      if (tip.value === 'CONTACTO_TITULAR' && !res.value) { toast('Indique el resultado de la conversación'); res.focus(); return; }
+      const agent = $('#g-agent').value.trim(), t = nowStr(), obs = fm.querySelector('[data-k=obs]').value.trim();
+      r.g.intentos++; r.g.tip = tip.value; r.g.res = res.value; r.g.tel = tel.value; r.g.last = t; r.g.agent = agent; if (obs) r.g.obs = obs;
+      r.g.hist = (r.g.hist ? r.g.hist + '\n' : '') + `${t} · ${agent || 'sin agente'} · ${tel.value || '?'} · ${tip.value}${res.value ? '/' + res.value : ''}${obs ? ' · ' + obs.replace(/\n/g, ' ') : ''}`;
+      S.dirty++; renderGest();
+    };
+    const u = fm.querySelector('[data-act=undo]');
+    if (u) u.onclick = () => {
+      const r = S.gest[+fm.dataset.i]; const h = r.g.hist.split('\n'); h.pop(); r.g.hist = h.join('\n'); r.g.intentos = Math.max(0, r.g.intentos - 1);
+      const lastH = h[h.length - 1];
+      if (lastH) { const p = lastH.split(' · '); r.g.last = p[0]; r.g.agent = p[1] === 'sin agente' ? '' : p[1]; r.g.tel = p[2] === '?' ? '' : p[2]; const [tp, rs] = (p[3] || '').split('/'); r.g.tip = tp || ''; r.g.res = rs || ''; }
+      else Object.assign(r.g, { tip: '', res: '', tel: '', last: '', agent: '', obs: '' });
+      S.dirty++; renderGest();
+    };
+  });
+  const pg = $('#g-pager');
+  pg.innerHTML = pages > 1 ? `<button class="btn small" ${S.g.page === 0 ? 'disabled' : ''} data-p="-1">Anterior</button><span class="meta">Página ${S.g.page + 1} de ${pages} · ${fmt(rows.length)} leads</span><button class="btn small" ${S.g.page >= pages - 1 ? 'disabled' : ''} data-p="1">Siguiente</button>` : `<span class="meta">${fmt(rows.length)} leads</span>`;
+  pg.querySelectorAll('button').forEach(b => b.onclick = () => { S.g.page += +b.dataset.p; renderGList(); window.scrollTo({ top: $('#g-list').offsetTop - 80 }); });
+}
+['#g-filter', '#g-grade', '#g-city', '#g-max'].forEach(s => $(s).addEventListener('change', () => { S.g.page = 0; renderGest(); }));
+$('#g-q').addEventListener('input', () => { S.g.page = 0; renderGList(); });
+['#h-wd-a', '#h-wd-b', '#h-sa-a', '#h-sa-b', '#h-su'].forEach(s => $(s).addEventListener('change', renderGest));
+setInterval(() => { if (!$('#v-ges').classList.contains('hidden') && S.gest.length) $('#g-banner').innerHTML = inWindow() ? '' : '<div class="alert warn">Fuera de la franja de contacto configurada. Puede seguir revisando, pero no se recomienda llamar ahora.</div>'; }, 60000);
+window.addEventListener('beforeunload', e => { if (S.dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ---------- Exportación ---------- */
+function sheetFrom(rows, widths) {
+  const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ '': '' }]);
+  if (rows.length) ws['!cols'] = Object.keys(rows[0]).map(k => ({ wch: Math.min(60, Math.max(8, (widths && widths[k]) || k.length + 2, ...rows.slice(0, 200).map(r => String(r[k] ?? '').length + 1))) }));
+  return ws;
+}
+const safeSheet = s => s.replace(/[\\\/\?\*\[\]:]/g, '_').slice(0, 31);
+function gestSummaryRows() {
+  const k = gKpis(S.gest);
+  return [
+    { Indicador: 'Leads en la prueba', Valor: k.n }, { Indicador: 'Leads gestionados', Valor: k.ges }, { Indicador: 'Intentos registrados', Valor: k.attempts },
+    { Indicador: 'Contactabilidad (titular o tercero / gestionados)', Valor: pct(k.contacted, k.ges) },
+    { Indicador: 'Contacto efectivo (titular / gestionados)', Valor: pct(k.titular, k.ges) },
+    { Indicador: 'Números errados (no existe o no es el titular / gestionados)', Valor: pct(k.wrong, k.ges) },
+    { Indicador: 'Interés (interesado o venta / contactos efectivos)', Valor: pct(k.interest, k.titular) },
+    { Indicador: 'Reclamos por origen del dato', Valor: k.origen }, { Indicador: 'Solicitan no ser contactados', Valor: k.nocont },
+    { Indicador: 'Generado', Valor: nowStr() },
+  ];
+}
+function dictRows() {
+  return [
+    ...TIPIF.map(([k, l]) => ({ Tipo: 'Tipificación', Codigo: k, Descripcion: l })),
+    ...RESULT.map(([k, l]) => ({ Tipo: 'Resultado', Codigo: k, Descripcion: l })),
+    ...Object.entries(ESTADOS).map(([k, l]) => ({ Tipo: 'Estado de depuración', Codigo: k, Descripcion: l })),
+    ...Object.entries(LO.STATUS).map(([k, v]) => ({ Tipo: 'Validación de teléfono', Codigo: k, Descripcion: v.label })),
+    { Tipo: 'Control', Codigo: 'LO_LEADS_V1', Descripcion: 'Para continuar la gestión, cargue este archivo en la pestaña 2 de la herramienta. No cambie el nombre de la hoja Leads_gestion ni de sus columnas.' },
+  ];
+}
+function exportGest() {
+  if (!S.gest.length) { toast('No hay leads para exportar'); return; }
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, sheetFrom(gestRows(), { G_Historial: 50, G_Observacion: 40 }), 'Leads_gestion');
+  XLSX.utils.book_append_sheet(wb, sheetFrom(gestSummaryRows()), 'Resumen_gestion');
+  XLSX.utils.book_append_sheet(wb, sheetFrom(dictRows()), 'Diccionario');
+  save(wb, `Gestion_leads_${stamp()}.xlsx`, () => { S.dirty = 0; renderGest(); });
+}
+$('#g-export').onclick = exportGest;
+function exportFull() {
+  const wb = XLSX.utils.book_new(), L = S.leads, n = L.length, est = counts(L, 'estado');
+  const phones = L.flatMap(x => [...x.phones, ...x.badPhones]), ph = counts(phones, 'status');
+  const resumen = [
+    { Concepto: 'Archivos evaluados', Valor: S.files.new.map(f => f.fullName).join(', ') },
+    { Concepto: 'Bases anteriores cruzadas', Valor: S.files.prev.map(f => f.fullName).join(', ') || 'Ninguna' },
+    { Concepto: 'Listas de exclusión', Valor: S.files.excl.map(f => f.fullName).join(', ') || 'Ninguna' },
+    { Concepto: 'País por defecto', Valor: S.cfg.country }, { Concepto: 'Zona objetivo', Valor: S.cfg.zone.map(d => LO.depDisplay[d]).join(', ') },
+    { Concepto: 'Fecha de procesamiento', Valor: S.processedAt }, { Concepto: '', Valor: '' },
+    { Concepto: 'Registros recibidos', Valor: n },
+    ...Object.entries(ESTADOS).map(([k, l]) => ({ Concepto: l, Valor: `${est[k] || 0} (${pct(est[k] || 0, n)})` })),
+    { Concepto: '', Valor: '' }, { Concepto: 'Números analizados', Valor: phones.length },
+    ...Object.entries(ph).map(([k, v]) => ({ Concepto: 'Teléfonos · ' + LO.STATUS[k].label, Valor: `${v} (${pct(v, phones.length)})` })),
+  ];
+  XLSX.utils.book_append_sheet(wb, sheetFrom(resumen, { Concepto: 55, Valor: 60 }), 'Resumen');
+  const gmap = new Map(S.gest.map(r => [r.lo, r]));
+  const leadRows = L.map(x => { const p = i => x.phones[i]; return {
+    LO_ID: 'LO-' + x.lo, Archivo: x.file, Fila: x.row, Identificacion: x.id, Nombre: x.name, Ciudad_original: x.cityRaw, Municipio: x.geo.mun || '', Departamento: x.geo.dep ? LO.depDisplay[x.geo.dep] : '', En_zona: x.inZone ? 'Sí' : 'No',
+    Tel_1: LO.displayPhone(p(0), S.cfg.country), Tipo_1: p(0) ? phoneType(p(0).status) : '', Tel_2: LO.displayPhone(p(1), S.cfg.country), Tipo_2: p(1) ? phoneType(p(1).status) : '', Tel_3: LO.displayPhone(p(2), S.cfg.country), Tipo_3: p(2) ? phoneType(p(2).status) : '',
+    Tels_descartados: x.badPhones.map(b => `${b.raw} (${LO.STATUS[b.status].label})`).join(' | '),
+    Email: x.email, Email_estado: x.emailStatus, Puntaje: x.score, Grado: x.grade, Estado_depuracion: ESTADOS[x.estado], Motivo: x.reasons.join(' | '), Observaciones: x.obs.join(' | '),
+    G_Estado: gmap.has('LO-' + x.lo) ? gState(gmap.get('LO-' + x.lo)) : '',
+  }; });
+  XLSX.utils.book_append_sheet(wb, sheetFrom(leadRows, { Observaciones: 60, Motivo: 40 }), 'Depuracion');
+  const obsRows = L.flatMap(x => [...x.reasons, ...x.obs].map(o => ({ LO_ID: 'LO-' + x.lo, Archivo: x.file, Fila: x.row, Nombre: x.name, Estado: ESTADOS[x.estado], Observacion: o })));
+  XLSX.utils.book_append_sheet(wb, sheetFrom(obsRows, { Observacion: 70 }), 'Observaciones');
+  XLSX.utils.book_append_sheet(wb, sheetFrom((S.geoRows || []).map(r => ({ Departamento: r.d, Ciudad_municipio: r.m, Registros: r.n, Aptos: r.ok, Zona: r.zone ? 'Dentro' : 'Fuera' }))), 'Geografia');
+  XLSX.utils.book_append_sheet(wb, sheetFrom(S.alerts.map(a => ({ Severidad: a.sev, Hallazgo: a.label, Archivo: a.file, Columna: a.col, Filas_con_hallazgo: a.hits, Filas: a.n }))), 'Alertas_procedencia');
+  // Hojas originales con columnas de observación
+  const byFile = {}; L.forEach(x => { (byFile[x.file] = byFile[x.file] || {})[x.row] = x; });
+  S.files.new.forEach(f => {
+    const ncol = Math.max(0, ...f.rows.map(r => r.length));
+    const head = f.hasHeader ? f.rows[0].map((h, c) => h == null || String(h).trim() === '' ? LO.colName(f, c) : String(h)) : [...Array(ncol).keys()].map(c => LO.colName(f, c));
+    while (head.length < ncol) head.push(LO.colName(f, head.length));
+    const aoa = [[...head, 'LO_ID', 'Estado_depuracion', 'Telefono_principal', 'Grado', 'Observaciones']];
+    f.rows.slice(f.hasHeader ? 1 : 0).forEach((r, i) => { const x = byFile[f.name] && byFile[f.name][i + 1 + (f.hasHeader ? 1 : 0)]; const base = [...Array(ncol).keys()].map(c => r[c] ?? ''); aoa.push(x ? [...base, 'LO-' + x.lo, ESTADOS[x.estado], LO.displayPhone(x.phones[0], S.cfg.country), x.grade, [...x.reasons, ...x.obs].join(' | ')] : base); });
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    XLSX.utils.book_append_sheet(wb, ws, safeSheet('Orig_' + f.name));
+  });
+  XLSX.utils.book_append_sheet(wb, sheetFrom(dictRows()), 'Diccionario');
+  save(wb, `Depuracion_${safeSheet(S.files.new[0].name)}_${stamp()}.xlsx`);
+}
+let dl = null;
+async function save(wb, filename, onOk) {
+  const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array', compression: true });
+  const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  try { if (dl === null && window.claude && window.claude.use) dl = await window.claude.use('downloads'); } catch (e) { dl = null; }
+  if (dl) {
+    try { await dl.save({ filename, data: blob }); toast('Archivo descargado'); onOk && onOk(); }
+    catch (e) { toast(e && e.code === 'declined' ? 'Descarga cancelada' : 'No se pudo descargar: ' + (e.message || e.code), 6000); }
+    return;
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000); toast('Archivo generado'); onOk && onOk();
+}
+})();
+</script></body></html>
